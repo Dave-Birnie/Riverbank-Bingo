@@ -1,0 +1,33 @@
+# Riverbank Bingo — temp review site
+
+DirectoryIndex index.html
+
+# Friendly URL for the alternate design: /black-gold
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^black-gold/?$ black-gold.html [L]
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # Hashed-in-name assets never change; the pages themselves should not stick.
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2             "access plus 1 year"
+  ExpiresByType image/png              "access plus 1 year"
+  ExpiresByType image/svg+xml          "access plus 1 year"
+  ExpiresByType text/html              "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  # This is an unfinished client review site — keep it out of search results.
+  Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+
+AddType font/woff2 .woff2
