@@ -9,13 +9,16 @@ asset in JavaScript before anything renders.
 
 This script unpacks them into an ordinary static site instead:
 
-    public/
-      index.html          Classic (light) homepage
-      black-gold.html     Black & Gold homepage
-      assets/js|fonts|img Shared, deduplicated, cacheable assets
+    index.html          Classic (light) homepage
+    black-gold.html     Black & Gold homepage
+    assets/js|fonts|img Shared, deduplicated, cacheable assets
 
 Both pages get a light-bulb button that switches between the two designs,
 keeping your scroll position so it reads as a theme toggle.
+
+The built site lives at the repository root rather than in a subfolder, because
+Hostinger's Git deployment clones the whole repo into the web root — with the
+pages one level down they would serve from /public/ instead of /.
 
 Usage:  python3 tools/build.py
 """
@@ -32,7 +35,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "source"
-PUBLIC = ROOT / "public"
+
+# The site is generated straight into the repo root (see the module docstring).
+# Only these paths are ever written or removed by the build — everything else in
+# the repo (source/, tools/, README.md, .git/) is left alone.
+OUT = ROOT
+GENERATED = ["index.html", "black-gold.html", "robots.txt", ".htaccess", "assets"]
 
 # --------------------------------------------------------------------------
 # The two designs
@@ -315,18 +323,18 @@ def build_page(theme, shared):
                 sys.exit(f"{bundle.name}: unrecognised script asset {asset_id} ({digest})")
             if name == "dc-runtime.js":
                 runtime_id = asset_id
-            out = PUBLIC / "assets" / "js" / name
+            out = OUT / "assets" / "js" / name
             # The runtime is injected by hand below; the rest resolve by path.
             replacements[asset_id] = f"assets/js/{name}"
 
         elif mime == "font/woff2":
             name = fonts.get(asset_id) or f"font-{digest[:10]}.woff2"
-            out = PUBLIC / "assets" / "fonts" / name
+            out = OUT / "assets" / "fonts" / name
             replacements[asset_id] = f"assets/fonts/{name}"
 
         elif mime.startswith("image/"):
             name = IMAGE_NAMES.get(digest) or f"image-{digest[:10]}.{EXT.get(mime, 'bin')}"
-            out = PUBLIC / "assets" / "img" / name
+            out = OUT / "assets" / "img" / name
             replacements[asset_id] = f"assets/img/{name}"
 
         else:
@@ -379,7 +387,7 @@ def build_page(theme, shared):
     else:
         page += toggle_markup(theme)
 
-    out_page = PUBLIC / theme["page"]
+    out_page = OUT / theme["page"]
     out_page.write_text(page, encoding="utf-8")
 
     leftover = re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", page)
@@ -401,6 +409,13 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 HTACCESS = """# Riverbank Bingo — temp review site
 
 DirectoryIndex index.html
+
+# Deploying this repo with Hostinger's Git integration clones the whole
+# repository into the web root, so the non-site files land there too. Hide
+# them: .git would otherwise let anyone download the full repo history.
+RedirectMatch 404 ^/\\.git(/|$)
+RedirectMatch 404 ^/(source|tools)(/|$)
+RedirectMatch 404 ^/(README\\.md|\\.gitignore)$
 
 # Friendly URL for the alternate design: /black-gold
 <IfModule mod_rewrite.c>
@@ -437,22 +452,28 @@ ROBOTS = "User-agent: *\nDisallow: /\n"
 
 
 def main():
-    if PUBLIC.exists():
-        shutil.rmtree(PUBLIC)
-    PUBLIC.mkdir(parents=True)
+    # Remove only what this script generates. Never rmtree OUT itself — it is
+    # the repository root, and that would take source/, tools/ and .git with it.
+    for name in GENERATED:
+        target = OUT / name
+        if target.is_dir():
+            shutil.rmtree(target)
+        elif target.exists():
+            target.unlink()
 
     print("Building Riverbank Bingo temp site\n")
     shared = {}
     for theme in THEMES:
         build_page(theme, shared)
 
-    (PUBLIC / "assets" / "img" / "favicon.svg").write_text(FAVICON, encoding="utf-8")
-    (PUBLIC / ".htaccess").write_text(HTACCESS, encoding="utf-8")
-    (PUBLIC / "robots.txt").write_text(ROBOTS, encoding="utf-8")
+    (OUT / "assets" / "img" / "favicon.svg").write_text(FAVICON, encoding="utf-8")
+    (OUT / ".htaccess").write_text(HTACCESS, encoding="utf-8")
+    (OUT / "robots.txt").write_text(ROBOTS, encoding="utf-8")
 
-    total = sum(f.stat().st_size for f in PUBLIC.rglob("*") if f.is_file())
-    files = sum(1 for f in PUBLIC.rglob("*") if f.is_file())
-    print(f"\n  {files} files, {total / 1024 / 1024:.2f} MB total -> {PUBLIC}")
+    built = [OUT / n for n in GENERATED]
+    every = [f for p in built for f in ([p] if p.is_file() else p.rglob("*")) if f.is_file()]
+    total = sum(f.stat().st_size for f in every)
+    print(f"\n  {len(every)} files, {total / 1024 / 1024:.2f} MB total -> {OUT}")
 
 
 if __name__ == "__main__":

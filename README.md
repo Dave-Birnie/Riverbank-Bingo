@@ -3,10 +3,10 @@
 Two homepage design options for Riverbank Bingo, built as a plain static site
 so they can be hosted side by side on Hostinger for client review.
 
-| Design | Page | URL once uploaded |
+| Design | Page | URL once deployed |
 | --- | --- | --- |
-| **Classic** (light) | `public/index.html` | `https://yourdomain.com/` |
-| **Black & Gold** | `public/black-gold.html` | `https://yourdomain.com/black-gold` |
+| **Classic** (light) | `index.html` | `https://yourdomain.com/` |
+| **Black & Gold** | `black-gold.html` | `https://yourdomain.com/black-gold` |
 
 Both pages carry a **light-bulb button** in the bottom-right corner that swaps
 between the two designs. Your scroll position carries across, so it reads like a
@@ -18,32 +18,39 @@ Each design also has its own URL, so you can send a client straight to one.
 
 ---
 
-## Uploading to Hostinger
+## Deploying to Hostinger
 
-Everything you need is in `public/`. Nothing is built or compiled on the server —
-it is ordinary HTML, CSS, images and JavaScript.
+The site is generated **at the repository root** — `index.html` is the first
+thing in the repo, not tucked inside a `public/` folder. Hostinger's Git
+integration clones the whole repository into your web root, so this is what
+makes the site serve from `/` rather than `/public/`.
 
-**Via hPanel File Manager**
+### Option A — connect the GitHub repo (recommended)
 
-1. hPanel → **Files → File Manager**, open `public_html`.
-2. Delete or move aside anything already in there (e.g. the Hostinger default page).
-3. Upload **the contents of `public/`** — not the `public` folder itself.
-   `index.html` must sit directly inside `public_html`.
-4. Make sure the hidden `.htaccess` file came across (File Manager →
-   **Settings → Show hidden files**).
+1. hPanel → **Websites →** your domain → **Advanced → GIT**
+2. **Repository:** `https://github.com/Dave-Birnie/Riverbank-Bingo.git`
+3. **Branch:** `claude/riverbank-bingo-temp-site-jlhsdq`
+4. **Directory:** leave blank to deploy into `public_html`
+5. **Create**, then hit **Deploy** on the entry it adds
 
-**Via FTP / SFTP**
+The repo is public, so no deploy key or SSH setup is needed. To push updates
+later, commit and press **Deploy** again — or use **Auto-Deployment** to have
+Hostinger pull on every push.
 
-```bash
-# from the repo root
-cd public
-# then upload everything here, including .htaccess, into public_html/
-```
+`public_html` must be empty first — delete Hostinger's placeholder
+(`index.html` / `default.php`) or the clone will refuse to run.
 
-Once uploaded, `https://yourdomain.com/` shows the Classic design and the
-light-bulb button switches to Black & Gold.
+### Option B — manual upload
 
-### What's in `public/`
+1. hPanel → **Files → File Manager**, open `public_html`
+2. Delete the placeholder files
+3. Upload everything from this repo *except* `source/`, `tools/`, `README.md`
+   and `.gitignore` — i.e. `index.html`, `black-gold.html`, `assets/`,
+   `robots.txt` and `.htaccess`
+4. File Manager → **Settings → Show hidden files** to confirm `.htaccess`
+   arrived
+
+### What gets served
 
 ```
 index.html          Classic homepage
@@ -55,13 +62,16 @@ assets/fonts/       Bevan, Source Sans 3, Playfair Display, Jost (self-hosted)
 assets/img/         Logo badges, wordmark, favicon
 ```
 
-Total upload is about 1.2 MB.
+About 1.2 MB. The repo also carries `source/`, `tools/` and this README, which
+a Git deploy drops into the web root alongside the site — `.htaccess` returns
+404 for those, and for `.git/`, which would otherwise let anyone download the
+full repository history.
 
 ### A note on search engines
 
 This is an unfinished review site, so both pages are marked `noindex, nofollow`
 and `robots.txt` disallows crawling. **Remove those before this becomes the real
-site** — see `public/robots.txt`, the `X-Robots-Tag` header in `public/.htaccess`,
+site** — see `robots.txt`, the `X-Robots-Tag` header in `.htaccess`,
 and the `robots` meta tag in each page (the `HEAD_EXTRA` / `ROBOTS` / `HTACCESS`
 blocks in `tools/build.py`).
 
@@ -69,8 +79,8 @@ blocks in `tools/build.py`).
 
 ## Rebuilding
 
-`public/` is generated from the two original design exports in `source/`.
-It is committed to the repo, so you only need this if you get updated exports.
+The site files are generated from the two original design exports in `source/`.
+They are committed to the repo, so you only need this if you get updated exports.
 
 ```bash
 python3 tools/build.py
@@ -103,7 +113,9 @@ block holding the interactive logic for the live caller and the printable card.
 The safe path is to change the design in Claude Design, re-export, drop the new
 file into `source/` under the same name, and re-run the build.
 
-If you edit `public/*.html` by hand, note that the next build will overwrite it.
+If you edit `index.html` or `black-gold.html` by hand, note that the next build
+overwrites them. The build only ever touches `index.html`, `black-gold.html`,
+`assets/`, `robots.txt` and `.htaccess` — never `source/`, `tools/` or `.git/`.
 
 ---
 
