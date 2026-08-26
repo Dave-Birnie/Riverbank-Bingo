@@ -2,6 +2,13 @@
 
 DirectoryIndex index.html
 
+# Deploying this repo with Hostinger's Git integration clones the whole
+# repository into the web root, so the non-site files land there too. Hide
+# them: .git would otherwise let anyone download the full repo history.
+RedirectMatch 404 ^/\.git(/|$)
+RedirectMatch 404 ^/(source|tools)(/|$)
+RedirectMatch 404 ^/(README\.md|\.gitignore)$
+
 # Friendly URL for the alternate design: /black-gold
 <IfModule mod_rewrite.c>
   RewriteEngine On

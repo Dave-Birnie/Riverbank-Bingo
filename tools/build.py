@@ -1,38 +1,42 @@
 #!/usr/bin/env python3
 """
-Build the Riverbank Bingo temp site from the two Claude Design bundles.
+Build the served pages from the editable templates in design/.
 
-The files in source/ are single-file "self-unpacking" exports: a JSON manifest
-of base64 assets plus the real page HTML stored as a JSON string. Serving those
-directly works but forces every visitor to download ~1.1 MB and rebuild every
-asset in JavaScript before anything renders.
+    design/classic.dc.html     ->  index.html
+    design/black-gold.dc.html  ->  black-gold.html
 
-This script unpacks them into an ordinary static site instead:
+Each template carries two markers that this script fills in:
 
-    public/
-      index.html          Classic (light) homepage
-      black-gold.html     Black & Gold homepage
-      assets/js|fonts|img Shared, deduplicated, cacheable assets
+    <!--BUILD:HEAD-->     title, meta, favicon and the local script tags
+    <!--BUILD:TOGGLE-->   the light-bulb design switcher
 
-Both pages get a light-bulb button that switches between the two designs,
-keeping your scroll position so it reads as a theme toggle.
+design/ is the source of truth — edit the design there, not in the generated
+pages. tools/extract.py regenerates design/ from the original exports in
+source/ and overwrites any edits, so it is not part of the normal loop.
+
+The pages are written to the repository root rather than a subfolder, because
+Hostinger's Git deployment clones the whole repo into the web root — one level
+down they would serve from /public/ instead of /.
 
 Usage:  python3 tools/build.py
 """
 
-import base64
-import gzip
-import hashlib
 import json
 import re
 import shutil
 import sys
-import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "source"
-PUBLIC = ROOT / "public"
+DESIGN = ROOT / "design"
+
+# The site is generated straight into the repo root (see the module docstring).
+# Only these paths are ever written or removed by the build — everything else in
+# the repo (source/, tools/, README.md, .git/) is left alone.
+OUT = ROOT
+# assets/ is produced by tools/extract.py and is NOT listed here — the build
+# must not delete files it cannot regenerate.
+GENERATED = ["index.html", "black-gold.html", "robots.txt", ".htaccess"]
 
 # --------------------------------------------------------------------------
 # The two designs
@@ -41,7 +45,7 @@ PUBLIC = ROOT / "public"
 THEMES = [
     {
         "key": "classic",
-        "bundle": "homepage-classic.bundle.html",
+        "template": "classic.dc.html",
         "page": "index.html",
         "other_page": "black-gold.html",
         "title": "Riverbank Bingo — Play at Home",
@@ -60,7 +64,7 @@ THEMES = [
     },
     {
         "key": "black-gold",
-        "bundle": "homepage-black-gold.bundle.html",
+        "template": "black-gold.dc.html",
         "page": "black-gold.html",
         "other_page": "index.html",
         "title": "Riverbank Bingo — Play at Home",
@@ -78,89 +82,6 @@ THEMES = [
         },
     },
 ]
-
-# Images are matched by content hash so both bundles share one copy.
-IMAGE_NAMES = {
-    "bb6069f59e3edb1412f7f6a3ce3c71f0fb96b609": "logo-badge-gold.png",
-    "60020dd81063e231abc4cc693968236286438a1e": "logo-badge-colour.png",
-    "0a1dd9272d1399f889367bf2301d92a72dd0fa2d": "wordmark.png",
-}
-
-# The three scripts the page needs, identified by content hash.
-JS_NAMES = {
-    "aa77ae4c49f525bc21de1d04f08a5d73962c7cce": "react.js",
-    "feb8ddc9d0566a4fa0971a6e1138658618cdacfe": "react-dom.js",
-    "2e38395c4a4ac9dd45b360554b9b99ba5a509250": "dc-runtime.js",
-}
-
-EXT = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/webp": "webp",
-    "image/svg+xml": "svg",
-    "font/woff2": "woff2",
-    "text/javascript": "js",
-    "application/javascript": "js",
-    "text/css": "css",
-}
-
-
-# --------------------------------------------------------------------------
-# Unpacking
-# --------------------------------------------------------------------------
-
-def read_bundle(path):
-    """Pull the asset manifest and the page template out of a bundle file."""
-    html = path.read_text(encoding="utf-8")
-
-    def grab(kind):
-        m = re.search(r'<script type="__bundler/%s">(.*?)</script>' % kind, html, re.S)
-        if not m:
-            sys.exit(f"{path.name}: no __bundler/{kind} block found")
-        return json.loads(m.group(1).strip())
-
-    return grab("manifest"), grab("template")
-
-
-def asset_bytes(entry):
-    data = base64.b64decode(entry["data"])
-    if entry.get("compressed"):
-        try:
-            data = gzip.decompress(data)
-        except Exception:
-            data = zlib.decompress(data)
-    return data
-
-
-def slug(text):
-    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
-
-
-def font_names(template):
-    """Map each font asset id to a readable filename from its @font-face rule.
-
-    Each rule is preceded by a `/* subset */` comment, so we can build names
-    like `source-sans-3-400-normal-latin.woff2` instead of leaving raw UUIDs.
-    """
-    names = {}
-    pattern = re.compile(
-        r"/\*\s*([a-z0-9-]+)\s*\*/\s*@font-face\s*\{(.*?)\}", re.S | re.I
-    )
-    for subset, block in pattern.findall(template):
-        def field(name, default=""):
-            m = re.search(r"%s:\s*([^;]+);" % name, block)
-            return m.group(1).strip().strip("'\"") if m else default
-
-        src = re.search(r'url\("([^"]+)"\)', block)
-        if not src:
-            continue
-        names[src.group(1)] = "%s-%s-%s-%s.woff2" % (
-            slug(field("font-family", "font")),
-            field("font-weight", "400"),
-            field("font-style", "normal"),
-            slug(subset),
-        )
-    return names
 
 
 # --------------------------------------------------------------------------
@@ -284,7 +205,7 @@ def toggle_markup(theme):
 # --------------------------------------------------------------------------
 
 HEAD_EXTRA = """<title>{title} · {label}</title>
-<meta name="description" content="Riverbank Bingo — free play-at-home bingo. Live caller every session, cards from verified local distributors. 18+ approved adult play.">
+<meta name="description" content="Riverbank Bingo is a play-at-home game. Pick up a card from a local distributor, follow the live caller from your own table, and phone in the moment you have BINGO. 18+ approved adult play.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="{theme_color}">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -296,97 +217,35 @@ HEAD_EXTRA = """<title>{title} · {label}</title>
 THEME_COLOR = {"classic": "#FBF6EC", "black-gold": "#0A0A0C"}
 
 
-def build_page(theme, shared):
-    bundle = SOURCE / theme["bundle"]
-    manifest, template = read_bundle(bundle)
+def build_page(theme):
+    src = DESIGN / theme["template"]
+    if not src.exists():
+        sys.exit(f"missing {src.relative_to(ROOT)} — run: python3 tools/extract.py")
+    page = src.read_text(encoding="utf-8")
 
-    fonts = font_names(template)
-    replacements = {}
-    runtime_id = None
-
-    for asset_id, entry in manifest.items():
-        data = asset_bytes(entry)
-        digest = hashlib.sha1(data).hexdigest()
-        mime = entry["mime"]
-
-        if mime in ("text/javascript", "application/javascript"):
-            name = JS_NAMES.get(digest)
-            if name is None:
-                sys.exit(f"{bundle.name}: unrecognised script asset {asset_id} ({digest})")
-            if name == "dc-runtime.js":
-                runtime_id = asset_id
-            out = PUBLIC / "assets" / "js" / name
-            # The runtime is injected by hand below; the rest resolve by path.
-            replacements[asset_id] = f"assets/js/{name}"
-
-        elif mime == "font/woff2":
-            name = fonts.get(asset_id) or f"font-{digest[:10]}.woff2"
-            out = PUBLIC / "assets" / "fonts" / name
-            replacements[asset_id] = f"assets/fonts/{name}"
-
-        elif mime.startswith("image/"):
-            name = IMAGE_NAMES.get(digest) or f"image-{digest[:10]}.{EXT.get(mime, 'bin')}"
-            out = PUBLIC / "assets" / "img" / name
-            replacements[asset_id] = f"assets/img/{name}"
-
-        else:
-            sys.exit(f"{bundle.name}: unexpected asset type {mime}")
-
-        # Assets shared between the two designs are written once.
-        key = str(out)
-        if key in shared:
-            if shared[key] != digest:
-                sys.exit(f"asset name collision with different content: {out.name}")
-        else:
-            out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_bytes(data)
-            shared[key] = digest
-
-    if runtime_id is None:
-        sys.exit(f"{bundle.name}: dc-runtime script not found")
-
-    # 1. Swap the bundler's runtime <script> for real, ordered script tags.
-    #    React must be on `window` before dc-runtime boots, otherwise the
-    #    runtime falls back to fetching React from a CDN.
+    # React must be on `window` before dc-runtime boots, otherwise the runtime
+    # falls back to fetching React from a CDN.
     head = HEAD_EXTRA.format(
         title=theme["title"],
         label=theme["label"],
         theme_color=THEME_COLOR[theme["key"]],
     )
-    runtime_tag = f'<script src="{runtime_id}"></script>'
-    if runtime_tag not in template:
-        sys.exit(f"{bundle.name}: could not locate the runtime script tag")
-    page = template.replace(runtime_tag, head, 1)
 
-    # 2. Point every remaining asset reference at its file on disk.
-    for asset_id, path in replacements.items():
-        page = page.replace(asset_id, path)
+    for marker, content in (("<!--BUILD:HEAD-->", head),
+                            ("<!--BUILD:TOGGLE-->", toggle_markup(theme))):
+        if marker not in page:
+            sys.exit(f"{src.name}: {marker} marker is missing")
+        page = page.replace(marker, content, 1)
 
-    # 3. Drop the Google Fonts preconnects — every font is served locally now.
-    page = re.sub(
-        r'\s*<link rel="preconnect" href="https://fonts\.(googleapis|gstatic)\.com"[^>]*>',
-        "",
-        page,
-    )
-
-    # 4. Add the light-bulb switcher, immediately before the document's real
-    #    closing tag. It has to be the *last* `</body>`: the bingo card's
-    #    print handler writes a popup document, so an earlier `</body>` sits
-    #    inside a JavaScript string and splicing there breaks the logic script.
-    if "</body>" in page:
-        head_part, tail_part = page.rsplit("</body>", 1)
-        page = head_part + toggle_markup(theme) + "\n</body>" + tail_part
-    else:
-        page += toggle_markup(theme)
-
-    out_page = PUBLIC / theme["page"]
+    out_page = OUT / theme["page"]
     out_page.write_text(page, encoding="utf-8")
 
-    leftover = re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", page)
-    if leftover:
-        sys.exit(f"{out_page.name}: {len(leftover)} unresolved asset id(s), e.g. {leftover[0]}")
+    missing = [m.group(0) for m in re.finditer(r'(?:src|href)="(assets/[^"]+)"', page)
+               if not (ROOT / m.group(1)).exists()]
+    if missing:
+        sys.exit(f"{out_page.name}: references missing asset(s), e.g. {missing[0]}")
 
-    print(f"  {theme['page']:<16} {out_page.stat().st_size / 1024:7.1f} KB  ({len(manifest)} assets)")
+    print(f"  {theme['page']:<16} {out_page.stat().st_size / 1024:7.1f} KB")
 
 
 FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -401,6 +260,13 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 HTACCESS = """# Riverbank Bingo — temp review site
 
 DirectoryIndex index.html
+
+# Deploying this repo with Hostinger's Git integration clones the whole
+# repository into the web root, so the non-site files land there too. Hide
+# them: .git would otherwise let anyone download the full repo history.
+RedirectMatch 404 ^/\\.git(/|$)
+RedirectMatch 404 ^/(source|tools)(/|$)
+RedirectMatch 404 ^/(README\\.md|\\.gitignore)$
 
 # Friendly URL for the alternate design: /black-gold
 <IfModule mod_rewrite.c>
@@ -437,22 +303,29 @@ ROBOTS = "User-agent: *\nDisallow: /\n"
 
 
 def main():
-    if PUBLIC.exists():
-        shutil.rmtree(PUBLIC)
-    PUBLIC.mkdir(parents=True)
+    # Remove only what this script generates. Never rmtree OUT itself — it is
+    # the repository root, and that would take source/, tools/ and .git with it.
+    for name in GENERATED:
+        target = OUT / name
+        if target.is_dir():
+            shutil.rmtree(target)
+        elif target.exists():
+            target.unlink()
 
     print("Building Riverbank Bingo temp site\n")
-    shared = {}
     for theme in THEMES:
-        build_page(theme, shared)
+        build_page(theme)
 
-    (PUBLIC / "assets" / "img" / "favicon.svg").write_text(FAVICON, encoding="utf-8")
-    (PUBLIC / ".htaccess").write_text(HTACCESS, encoding="utf-8")
-    (PUBLIC / "robots.txt").write_text(ROBOTS, encoding="utf-8")
+    favicon = OUT / "assets" / "img" / "favicon.svg"
+    favicon.parent.mkdir(parents=True, exist_ok=True)
+    favicon.write_text(FAVICON, encoding="utf-8")
+    (OUT / ".htaccess").write_text(HTACCESS, encoding="utf-8")
+    (OUT / "robots.txt").write_text(ROBOTS, encoding="utf-8")
 
-    total = sum(f.stat().st_size for f in PUBLIC.rglob("*") if f.is_file())
-    files = sum(1 for f in PUBLIC.rglob("*") if f.is_file())
-    print(f"\n  {files} files, {total / 1024 / 1024:.2f} MB total -> {PUBLIC}")
+    built = [OUT / n for n in GENERATED] + [OUT / "assets"]
+    every = [f for p in built for f in ([p] if p.is_file() else p.rglob("*")) if f.is_file()]
+    total = sum(f.stat().st_size for f in every)
+    print(f"\n  {len(every)} files, {total / 1024 / 1024:.2f} MB total -> {OUT}")
 
 
 if __name__ == "__main__":
