@@ -205,7 +205,7 @@ def toggle_markup(theme):
 # --------------------------------------------------------------------------
 
 HEAD_EXTRA = """<title>{title} · {label}</title>
-<meta name="description" content="Riverbank Bingo — free play-at-home bingo. Live caller every session, cards from verified local distributors. 18+ approved adult play.">
+<meta name="description" content="Riverbank Bingo is a play-at-home game. Pick up a card from a local distributor, follow the live caller from your own table, and phone in the moment you have BINGO. 18+ approved adult play.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="{theme_color}">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">

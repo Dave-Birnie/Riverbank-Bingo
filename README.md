@@ -8,8 +8,10 @@ so they can be hosted side by side on Hostinger for client review.
 | **Classic** (light) | `index.html` | `https://yourdomain.com/` |
 | **Black & Gold** | `black-gold.html` | `https://yourdomain.com/black-gold` |
 
-Both pages carry a **light-bulb button** in the bottom-right corner that swaps
-between the two designs. Your scroll position carries across, so it reads like a
+Both are play-at-home designs: the header carries a **Play at Home** badge, the
+hero leads on playing from your own table, and the primary CTA everywhere is
+**How to Play**. Both pages carry a **light-bulb button** in the bottom-right
+corner that swaps between the two designs. Your scroll position carries across, so it reads like a
 theme switch rather than a jump to a different page. The bulb is lit on the
 Classic design (click to turn the lights down) and dimmed on Black & Gold
 (click to turn them back up).
@@ -77,45 +79,53 @@ blocks in `tools/build.py`).
 
 ---
 
-## Rebuilding
+## Editing and rebuilding
 
-The site files are generated from the two original design exports in `source/`.
-They are committed to the repo, so you only need this if you get updated exports.
+**`design/` is the source of truth.** Edit the design there, then rebuild:
 
 ```bash
-python3 tools/build.py
+python3 tools/build.py     # design/*.dc.html -> index.html, black-gold.html
 ```
 
-The files in `source/` are single-file Claude Design exports: a JSON manifest of
-base64 assets plus the page HTML, unpacked in the browser by a loader script.
-Serving those as-is works, but every visitor downloads ~1.1 MB and rebuilds each
-asset in JavaScript before anything appears — and the two files ship duplicate
-copies of React, the fonts and the shared logos.
+`index.html` and `black-gold.html` are generated — anything you type into them
+is lost on the next build. The build only ever writes `index.html`,
+`black-gold.html`, `robots.txt`, `.htaccess` and the favicon; it never touches
+`design/`, `source/`, `tools/` or `.git/`.
 
-`tools/build.py` unpacks them ahead of time instead. It:
+Each template in `design/` is a full page with two markers the build fills in:
+`<!--BUILD:HEAD-->` (title, meta, favicon, script tags) and `<!--BUILD:TOGGLE-->`
+(the light-bulb switcher).
 
-- extracts every asset to a real file with a readable name, sharing assets that
-  are byte-identical across the two designs (React, the fonts, the logo badge
-  and the wordmark are stored once, not twice);
-- rewrites the pages to load those assets by path, and to pull React from
-  `assets/js/` rather than a CDN;
-- drops the now-unused Google Fonts preconnects;
-- adds the page title, favicon and meta tags;
-- injects the light-bulb switcher.
+### Where the designs came from
 
-The design markup itself is left byte-for-byte identical to the export — the
-switcher block is the only thing added to either page.
+`source/` holds the two original Claude Design exports — single-file bundles
+carrying a JSON manifest of base64 assets plus the page HTML, unpacked in the
+browser by a loader script. Serving those directly works, but every visitor
+downloads ~1.1 MB and rebuilds each asset in JavaScript before anything appears,
+and the two files ship duplicate copies of React, the fonts and the logos.
 
-### Editing the designs
+`tools/extract.py` unpacked them once into `design/` and `assets/`, sharing the
+assets that are byte-identical across the two designs (React, the fonts, the
+logo badge and the wordmark are stored once, not twice) and pointing the pages
+at local files instead of a CDN.
 
-These pages are Design Components: static markup plus a `<script type="text/x-dc">`
-block holding the interactive logic for the live caller and the printable card.
-The safe path is to change the design in Claude Design, re-export, drop the new
-file into `source/` under the same name, and re-run the build.
+You should not normally need to run it again — **it overwrites `design/` and
+throws away every edit made since**, which is why it refuses to run without
+`--force`. Use it only when you have genuinely new exports to import, and
+expect to redo the design changes afterwards.
 
-If you edit `index.html` or `black-gold.html` by hand, note that the next build
-overwrites them. The build only ever touches `index.html`, `black-gold.html`,
-`assets/`, `robots.txt` and `.htaccess` — never `source/`, `tools/` or `.git/`.
+### How the pages work
+
+These are Design Components: static markup plus a `<script type="text/x-dc">`
+block holding the interactive logic for the live caller and the demo card,
+hydrated by React and the runtime in `assets/js/`. Styling is almost entirely
+inline, which is why the responsive rules at the end of each template's
+`<style>` block need class hooks (`.rb-split`, `.rb-headrow`, `.rb-cta`,
+`.rb-board`) and `!important` to take effect.
+
+On phones the two-column sections stack, the header splits into a brand row and
+a scrolling nav row, and tap targets are padded out. Verified from 320px to
+1440px with no horizontal scrolling.
 
 ---
 
@@ -128,6 +138,7 @@ live, replace:
 - the distributor names, hours and the "drop a real map here" placeholder;
 - the winner quotes and photo slots, all marked *Placeholder name*;
 - the countdown target and session times;
-- the `href="#"` links in the top bar and footer.
+- the `href="#"` links in the top bar and footer;
+- the "Get game reminders" form, which is a static comp with nothing behind it.
 
-The bingo demo is explicitly labelled as free play — no money, no prizes.
+The bingo demo is explicitly labelled as play-for-fun — no money, no prizes.

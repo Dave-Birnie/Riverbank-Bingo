@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Riverbank Bingo — Play at Home · Classic</title>
-<meta name="description" content="Riverbank Bingo — free play-at-home bingo. Live caller every session, cards from verified local distributors. 18+ approved adult play.">
+<meta name="description" content="Riverbank Bingo is a play-at-home game. Pick up a card from a local distributor, follow the live caller from your own table, and phone in the moment you have BINGO. 18+ approved adult play.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#FBF6EC">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -411,12 +411,106 @@ a:hover{color:#EF6237}
 section[id]{scroll-margin-top:120px}
 @media (max-width:1000px){#rb-nav{gap:16px !important;font-size:14px !important}#rb-badge{display:none !important}}
 @media (max-width:760px){#rb-nav a:not([data-keep]){display:none}}
+
+/* ---------------------------------------------------------------------
+   Responsive rules.
+   The layout is built from inline styles, so these overrides need
+   !important to win, and class hooks (added in tools/, see below) to
+   target the containers that would otherwise not stack.
+   --------------------------------------------------------------------- */
+
+/* Two-column sections have a hard 620px minimum from their inline
+   minmax() tracks, which is what forced the page to scroll sideways on a
+   phone. Stack them well before that. */
+@media (max-width:1000px){
+  .rb-split{grid-template-columns:1fr !important;gap:34px !important}
+  .rb-split > *{min-width:0}
+}
+
+/* Header: brand stays on the first row, the nav moves underneath and
+   scrolls sideways instead of being hidden outright — otherwise a phone
+   gets no navigation at all. */
+@media (max-width:1040px){
+  .rb-headrow{flex-wrap:wrap !important;gap:10px 14px !important}
+  .rb-brand{margin-right:auto}
+  #rb-nav{
+    margin-left:0 !important;
+    gap:20px !important; font-size:14px !important;
+    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    padding-bottom:2px; justify-content:flex-start;
+  }
+  #rb-nav::-webkit-scrollbar{display:none}
+  #rb-nav a:not([data-keep]){display:inline-block !important}
+  #rb-nav a{flex:none}
+}
+
+@media (max-width:620px){
+  /* Trim the generous desktop rhythm so the page is not endless. */
+  section[id]{padding-top:56px !important;padding-bottom:60px !important}
+  #demo{margin-top:56px !important}
+
+  #rb-athome{font-size:9px !important;letter-spacing:.14em !important;padding:4px 8px !important}
+  #rb-nav{gap:16px !important;font-size:13.5px !important}
+
+  /* The 1-75 board keeps its 15-per-row shape (each row is one letter
+     group), so it has to shrink rather than reflow. */
+  .rb-board{gap:3px !important}
+  .rb-board > *{font-size:9.5px !important;padding:3px 0 !important;border-radius:4px !important}
+}
+
+/* Never let a stray fixed-width child scroll the whole page sideways. */
+html,body{max-width:100%;overflow-x:hidden}
+
+/* The primary CTA sits outside the scrolling nav so a phone always shows it
+   whole; on desktop it lands in the same place it always did. */
+@media (max-width:1040px){
+  .rb-cta{order:2;font-size:13px !important;padding:10px 16px !important}
+}
+@media (max-width:620px){
+  .rb-utility{font-size:11px !important;gap:10px !important;padding:7px 14px !important}
+  .rb-cta{font-size:12px !important;padding:9px 13px !important}
+  .rb-brand img[alt="Riverbank Bingo"]{height:24px !important}
+}
+
+/* Phone header, in two rows:
+     row 1  wordmark .................. How to Play
+     row 2  PLAY AT HOME | Next Game  Play Along  Find a Card ...
+   ::after is a flex item on a flex container, so it forces the line break
+   between the two rows regardless of how wide the brand ends up. */
+@media (max-width:1040px){
+  .rb-brand{order:1;margin-right:auto}
+  .rb-cta{order:2}
+  .rb-headrow::after{content:"";flex-basis:100%;height:0;order:3}
+  #rb-athome{order:4;flex:none}
+  #rb-nav{order:5;flex:1 1 0;min-width:0;width:auto !important}
+}
+
+/* Fade the right edge so a clipped nav item reads as "swipe me", not broken. */
+@media (max-width:1040px){
+  #rb-nav{
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent 100%);
+    mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent 100%);
+  }
+}
+
+/* Comfortable tap targets. The design's inline links are 15-22px tall, which
+   is fine with a mouse and fiddly with a thumb, so pad them out on touch
+   layouts without moving anything on desktop. */
+@media (max-width:1040px){
+  #rb-nav a:not(.rb-cta){padding:9px 0}
+  footer a{display:inline-block;padding:5px 0}
+  a[href^="tel:"]{display:inline-block;padding:6px 0}
+}
+@media (max-width:620px){
+  .rb-utility a{display:inline-block;padding:4px 0}
+  .rb-utility{gap:8px 12px !important}
+}
 </style>
 </helmet>
 
 <div style="width:100%">
 
-  <div style="background:#101319;color:#C9B78E;font-size:13px;letter-spacing:.06em;padding:9px 24px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;text-transform:uppercase">
+  <div class="rb-utility" style="background:#101319;color:#C9B78E;font-size:13px;letter-spacing:.06em;padding:9px 24px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;text-transform:uppercase">
     <span style="border:1px solid rgba(201,183,142,.45);border-radius:999px;padding:2px 9px;font-weight:600">18+</span>
     <span>Approved adult play only</span>
     <span style="opacity:.4">·</span>
@@ -428,19 +522,19 @@ section[id]{scroll-margin-top:120px}
   </div>
 
   <header style="position:sticky;top:0;z-index:60;background:rgba(8,32,45,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(240,201,127,.22);box-shadow:0 6px 24px rgba(0,0,0,.28)">
-    <div style="max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:20px;flex-wrap:nowrap">
-      <a href="#next" style="display:flex;align-items:center;gap:12px">
+    <div class="rb-headrow" style="max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:20px;flex-wrap:nowrap">
+      <a href="#next" class="rb-brand" style="display:flex;align-items:center;gap:12px">
         <img src="assets/img/logo-badge-gold.png" alt="" id="rb-badge" style="height:56px;width:auto;display:block;flex:none">
         <img src="assets/img/wordmark.png" alt="Riverbank Bingo" style="height:30px;width:auto;display:block">
       </a>
+        <span id="rb-athome" style="border:1px solid rgba(240,201,127,.55);color:#FFD98A;border-radius:999px;padding:4px 11px;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap">Play at Home</span>
       <nav id="rb-nav" style="display:flex;align-items:center;gap:24px;margin-left:auto;font-size:15px;font-weight:600;letter-spacing:.02em;flex-wrap:nowrap">
         <a href="#next" style="color:#EAF4FA;white-space:nowrap" style-hover="color:#FFD98A">Next Game</a>
-        <a href="#how" style="color:#EAF4FA;white-space:nowrap" style-hover="color:#FFD98A">How It Works</a>
-        <a href="#demo" data-keep="1" style="color:#FFD98A;white-space:nowrap" style-hover="color:#fff">Play Free</a>
+        <a href="#demo" data-keep="1" style="color:#FFD98A;white-space:nowrap" style-hover="color:#fff">Play Along</a>
         <a href="#cards" style="color:#EAF4FA;white-space:nowrap" style-hover="color:#FFD98A">Find a Card</a>
         <a href="#winners" style="color:#EAF4FA;white-space:nowrap" style-hover="color:#FFD98A">Winners</a>
-        <a href="#demo" data-keep="1" style="background:linear-gradient(135deg,#FF8A3D 0%,#EF3E63 100%);color:#fff;font-weight:700;font-size:15px;padding:11px 20px;border-radius:999px;box-shadow:0 6px 18px rgba(239,62,99,.4);white-space:nowrap" style-hover="filter:brightness(1.07)">Try Bingo Free</a>
       </nav>
+      <a href="#how" class="rb-cta" style="background:linear-gradient(135deg,#FF8A3D 0%,#EF3E63 100%);color:#fff;font-weight:700;font-size:15px;padding:11px 20px;border-radius:999px;box-shadow:0 6px 18px rgba(239,62,99,.4);white-space:nowrap" style-hover="filter:brightness(1.07)">How to Play</a>
     </div>
   </header>
 
@@ -450,14 +544,14 @@ section[id]{scroll-margin-top:120px}
     <div style="position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,rgba(122,181,214,0) 0%,rgba(122,181,214,.10) 40%,rgba(155,205,232,.20) 100%);pointer-events:none"></div>
     <div style="position:absolute;left:0;right:0;bottom:34px;height:74px;opacity:.5;background-image:repeating-linear-gradient(90deg,rgba(201,224,240,.55) 0px,rgba(201,224,240,.55) 26px,rgba(201,224,240,0) 26px,rgba(201,224,240,0) 74px);background-size:220px 100%;animation:rb-shimmer 9s linear infinite;pointer-events:none"></div>
 
-    <section id="next" style="position:relative;z-index:3;max-width:1240px;margin:0 auto;padding:58px 24px 92px;display:grid;grid-template-columns:minmax(320px,1.02fr) minmax(320px,.98fr);gap:56px;align-items:center">
+    <section class="rb-split" id="next" style="position:relative;z-index:3;max-width:1240px;margin:0 auto;padding:58px 24px 92px;display:grid;grid-template-columns:minmax(320px,1.02fr) minmax(320px,.98fr);gap:56px;align-items:center">
       <div>
         <div style="display:inline-flex;align-items:center;gap:9px;background:rgba(239,98,55,.16);border:1px solid rgba(239,98,55,.5);color:#FFB79C;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;animation:rb-flash 3.2s ease-in-out infinite">
           <span style="width:8px;height:8px;border-radius:50%;background:#EF6237;display:block"></span>
-          Live tonight from the riverbank
+          Play at home · live tonight
         </div>
-        <h1 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(42px,5.4vw,74px);line-height:.98;margin:20px 0 0;letter-spacing:-.01em;background-image:linear-gradient(172deg,#FFF3D6 0%,#F0C97F 36%,#C08F45 72%,#F5DFAE 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance">Bingo night is<br>almost here.</h1>
-        <p style="font-size:19.5px;line-height:1.55;color:#CFE2EC;max-width:31em;margin:22px 0 0;text-wrap:pretty">Get your cards, follow the live game, and call when you have BINGO. Or dab a free demo card right now and see how a Riverbank session feels.</p>
+        <h1 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(42px,5.4vw,74px);line-height:.98;margin:20px 0 0;letter-spacing:-.01em;background-image:linear-gradient(172deg,#FFF3D6 0%,#F0C97F 36%,#C08F45 72%,#F5DFAE 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance">Bingo night,<br>at your table.</h1>
+        <p style="font-size:19.5px;line-height:1.55;color:#CFE2EC;max-width:31em;margin:22px 0 0;text-wrap:pretty">Pick up a card locally, then play along from your own kitchen table. We call every number live on this page — dab as they come, and phone in the moment you have BINGO.</p>
 
         <div style="display:flex;gap:22px;margin:30px 0 0;flex-wrap:wrap;align-items:center">
           <div style="display:flex;gap:10px">
@@ -481,15 +575,15 @@ section[id]{scroll-margin-top:120px}
         </div>
 
         <div style="display:flex;gap:16px;margin:32px 0 0;flex-wrap:wrap;align-items:center">
-          <a href="#demo" style="position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FFB03A 0%,#FF6A3D 46%,#EF3E63 100%);color:#fff;font-size:21px;font-weight:700;padding:19px 34px 19px 26px;border-radius:999px;box-shadow:0 16px 38px rgba(239,62,99,.42)" style-hover="transform:translateY(-3px);box-shadow:0 22px 46px rgba(239,62,99,.55)">
+          <a href="#how" style="position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FFB03A 0%,#FF6A3D 46%,#EF3E63 100%);color:#fff;font-size:21px;font-weight:700;padding:19px 34px 19px 26px;border-radius:999px;box-shadow:0 16px 38px rgba(239,62,99,.42)" style-hover="transform:translateY(-3px);box-shadow:0 22px 46px rgba(239,62,99,.55)">
             <span style="width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 34% 28%,#FFFDF4,#FFE3A8 42%,#E9A93B);color:#3B2C12;font-family:'Bevan',Georgia,serif;font-size:17px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:inset 0 -3px 7px rgba(0,0,0,.2)">{{ ctaBallLabel }}</span>
             <span style="display:flex;flex-direction:column;line-height:1.1;text-align:left">
-              <span>Try Bingo Free</span>
-              <span style="font-size:13px;font-weight:600;letter-spacing:.04em;opacity:.88">Free printable card · takes 20 seconds · dab at home</span>
+              <span>How to Play</span>
+              <span style="font-size:13px;font-weight:600;letter-spacing:.04em;opacity:.88">Three steps · play from your own table</span>
             </span>
             <span style="position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.42),rgba(255,255,255,0));animation:rb-sheen 3.6s ease-in-out infinite;pointer-events:none"></span>
           </a>
-          <a href="#how" style="border:1.5px solid rgba(255,255,255,.4);color:#EAF4FA;font-size:18px;font-weight:600;padding:16px 28px;border-radius:999px" style-hover="background:rgba(255,255,255,.12);color:#fff">See How It Works</a>
+          <a href="#demo" style="border:1.5px solid rgba(255,255,255,.4);color:#EAF4FA;font-size:18px;font-weight:600;padding:16px 28px;border-radius:999px" style-hover="background:rgba(255,255,255,.12);color:#fff">Play Along Now</a>
         </div>
         <p style="font-size:13.5px;color:#8FB0C2;margin:20px 0 0;line-height:1.5">The demo is for fun only — no money, no prizes. Dates, times, prices and phone numbers on this page are placeholders.</p>
       </div>
@@ -553,8 +647,8 @@ section[id]{scroll-margin-top:120px}
 
   <section id="how" style="max-width:1160px;margin:0 auto;padding:96px 24px 20px">
     <div style="text-align:center;max-width:38em;margin:0 auto">
-      <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#0F6B60;font-weight:700">How Riverbank works</div>
-      <h2 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1.06;margin:14px 0 0;color:#1B2028">Three steps, then it's just bingo.</h2>
+      <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#0F6B60;font-weight:700">How to play at home</div>
+      <h2 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1.06;margin:14px 0 0;color:#1B2028">Three steps, then play from your own table.</h2>
       <p style="font-size:18.5px;line-height:1.6;color:#4C525C;margin:16px 0 0;text-wrap:pretty">No account to create, no app to install. Pick up cards from a local distributor, tune into the live game, and phone us the moment you have a line.</p>
     </div>
 
@@ -567,9 +661,9 @@ section[id]{scroll-margin-top:120px}
       </div>
       <div style="background:#fff;border:1px solid #E7DECB;border-radius:20px;padding:30px 28px 32px;box-shadow:0 2px 0 rgba(28,32,40,.04)" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px rgba(28,32,40,.10)">
         <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(180deg,#7AB5D6,#2E7CA8);color:#fff;font-family:'Bevan',Georgia,serif;font-size:24px;display:flex;align-items:center;justify-content:center">2</div>
-        <h3 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:23px;margin:20px 0 0;color:#1B2028">Join the live game</h3>
-        <p style="font-size:17px;line-height:1.6;color:#4C525C;margin:11px 0 0">Open the game-night hub at start time. The caller reads every number, and the board on screen shows every call and the pattern in play.</p>
-        <a href="#demo" style="display:inline-block;margin-top:16px;font-weight:700">Download a free card →</a>
+        <h3 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:23px;margin:20px 0 0;color:#1B2028">Follow the call from home</h3>
+        <p style="font-size:17px;line-height:1.6;color:#4C525C;margin:11px 0 0">Open this page at start time and play from wherever you are. The caller reads every number, and the board on screen shows every call and the pattern in play.</p>
+        <a href="#demo" style="display:inline-block;margin-top:16px;font-weight:700">Play along now →</a>
       </div>
       <div style="background:#fff;border:1px solid #E7DECB;border-radius:20px;padding:30px 28px 32px;box-shadow:0 2px 0 rgba(28,32,40,.04)" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px rgba(28,32,40,.10)">
         <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(180deg,#FF8A5F,#DF4E1D);color:#fff;font-family:'Bevan',Georgia,serif;font-size:24px;display:flex;align-items:center;justify-content:center">3</div>
@@ -581,45 +675,11 @@ section[id]{scroll-margin-top:120px}
   </section>
 
   <section id="demo" style="margin:88px 0 0;background:#0C2E2C;background-image:radial-gradient(90% 80% at 18% 0%,#17544D 0%,#0C312E 52%,#07211F 100%);color:#F6EEDC;padding:82px 24px 88px">
-    <div style="max-width:1160px;margin:0 auto;display:grid;grid-template-columns:minmax(300px,.9fr) minmax(320px,1.1fr);gap:56px;align-items:start">
+    <div class="rb-split" style="max-width:1160px;margin:0 auto;display:grid;grid-template-columns:minmax(300px,.9fr) minmax(320px,1.1fr);gap:56px;align-items:start">
       <div>
-        <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#F0C97F;font-weight:700">Free printable card</div>
-        <h2 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1.06;margin:14px 0 0">Take a free card home.</h2>
-        <p style="font-size:18.5px;line-height:1.6;color:#D8CFBE;margin:16px 0 0;text-wrap:pretty">Sign up and we'll send you this card to print and dab at the kitchen table. Try it here first — numbers are being called every few seconds, so tap a square when its number comes up.</p>
-
-        <div style="{{ gateStyle }}">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
-            <span style="font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#F0C97F;font-weight:700">Claim your free card</span>
-            <span style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#9FD3F0">{{ cardIdLabel }}</span>
-          </div>
-          <p style="font-size:16.5px;line-height:1.55;color:#D8CFBE;margin:10px 0 0">Tell us where to send it and the card is yours, plus a reminder before each game night.</p>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:16px">
-            <input type="text" placeholder="First name" value="{{ firstName }}" sc-camel-on-change="{{ onFirstName }}" style="width:100%;font-family:'Source Sans 3',sans-serif;font-size:16.5px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.09);color:#fff">
-            <input type="email" placeholder="you@email.com" value="{{ email }}" sc-camel-on-change="{{ onEmail }}" style="width:100%;font-family:'Source Sans 3',sans-serif;font-size:16.5px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.09);color:#fff">
-          </div>
-          <button sc-camel-on-click="{{ onUnlock }}" style="position:relative;overflow:hidden;width:100%;background:linear-gradient(135deg,#FFB03A 0%,#FF6A3D 46%,#EF3E63 100%);color:#fff;font-family:'Source Sans 3',sans-serif;font-size:18px;font-weight:700;border:0;padding:16px;border-radius:999px;cursor:pointer;margin-top:12px;box-shadow:0 12px 28px rgba(239,62,99,.38)" style-hover="transform:translateY(-2px)">
-            Sign up for my free card
-            <span style="position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.4),rgba(255,255,255,0));animation:rb-sheen 3.6s ease-in-out infinite;pointer-events:none"></span>
-          </button>
-          <p style="{{ errorStyle }}">{{ emailError }}</p>
-          <p style="font-size:13px;color:#A9BEC4;margin:12px 0 0;line-height:1.5">Adults 18+. Session info and reminders only, unsubscribe any time. Sign-up is not a purchase and wins nothing.</p>
-        </div>
-
-        <div style="{{ unlockedStyle }}">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
-            <span style="font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#9BDDA6;font-weight:700">{{ greetingLabel }}</span>
-            <span style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#9FD3F0">{{ cardIdLabel }}</span>
-          </div>
-          <p style="font-size:16.5px;line-height:1.55;color:#DDEDE0;margin:10px 0 0">You're on the list as {{ sentToLabel }}. Download your card as many times as you like — it's free.</p>
-          <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
-            <button sc-camel-on-click="{{ onDownload }}" style="position:relative;overflow:hidden;background:linear-gradient(135deg,#FFB03A 0%,#FF6A3D 46%,#EF3E63 100%);color:#fff;font-family:'Source Sans 3',sans-serif;font-size:17px;font-weight:700;border:0;padding:15px 26px;border-radius:999px;cursor:pointer;box-shadow:0 12px 28px rgba(239,62,99,.32)" style-hover="transform:translateY(-2px)">
-              Download your free card
-              <span style="position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.4),rgba(255,255,255,0));animation:rb-sheen 3.6s ease-in-out infinite;pointer-events:none"></span>
-            </button>
-            <button sc-camel-on-click="{{ onPrint }}" style="background:transparent;color:#F4D79A;font-family:'Source Sans 3',sans-serif;font-size:16px;font-weight:600;border:1.5px solid rgba(240,201,127,.5);padding:14px 22px;border-radius:999px;cursor:pointer" style-hover="background:rgba(240,201,127,.12)">Print it</button>
-          </div>
-          <p style="font-size:13.5px;color:#A9BEC4;margin:12px 0 0;line-height:1.5">{{ downloadNote }}</p>
-        </div>
+        <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#F0C97F;font-weight:700">Play along from home</div>
+        <h2 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(30px,3.6vw,46px);line-height:1.06;margin:14px 0 0">This is bingo night, at your table.</h2>
+        <p style="font-size:18.5px;line-height:1.6;color:#D8CFBE;margin:16px 0 0;text-wrap:pretty">This is exactly how a Riverbank night runs at home. Numbers are being called every few seconds — tap a square when its number comes up, same as you would with a paper card at your own table.</p>
 
         <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap">
           <button sc-camel-on-click="{{ onNewCard }}" style="background:linear-gradient(180deg,#F3D28C,#C99A4C);color:#26201A;font-family:'Source Sans 3',sans-serif;font-size:16px;font-weight:700;border:0;padding:13px 22px;border-radius:999px;cursor:pointer" style-hover="filter:brightness(1.08)">New card</button>
@@ -651,7 +711,7 @@ section[id]{scroll-margin-top:120px}
 
         <div style="margin-top:22px;background:rgba(10,12,16,.5);border:1px solid rgba(240,201,127,.18);border-radius:16px;padding:16px">
           <div style="font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#A79C88;font-weight:700;margin-bottom:12px">Numbers board</div>
-          <div style="display:grid;grid-template-columns:repeat(15,1fr);gap:4px">
+          <div class="rb-board" style="display:grid;grid-template-columns:repeat(15,1fr);gap:4px">
             <sc-for list="{{ boardCells }}" as="b" hint-placeholder-count="75">
               <div style="{{ b.style }}">{{ b.n }}</div>
             </sc-for>
@@ -662,7 +722,7 @@ section[id]{scroll-margin-top:120px}
   </section>
 
   <section id="cards" style="max-width:1160px;margin:0 auto;padding:92px 24px 0">
-    <div style="display:grid;grid-template-columns:minmax(300px,1fr) minmax(320px,1.15fr);gap:52px;align-items:center">
+    <div class="rb-split" style="display:grid;grid-template-columns:minmax(300px,1fr) minmax(320px,1.15fr);gap:52px;align-items:center">
       <div>
         <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#DF3F2E;font-weight:700">Find a card</div>
         <h2 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(30px,3.6vw,44px);line-height:1.08;margin:14px 0 0;color:#1B2028">Real paper cards, from people down the road.</h2>
@@ -744,7 +804,7 @@ section[id]{scroll-margin-top:120px}
   </section>
 
   <section id="reminders" style="max-width:1160px;margin:90px auto 0;padding:0 24px">
-    <div style="background:#0F3244;background-image:radial-gradient(80% 120% at 90% 0%,#17506A 0%,#0F3244 60%);border-radius:26px;padding:54px 44px;color:#EAF4FA;display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,.85fr);gap:40px;align-items:center;position:relative;overflow:hidden">
+    <div class="rb-split" style="background:#0F3244;background-image:radial-gradient(80% 120% at 90% 0%,#17506A 0%,#0F3244 60%);border-radius:26px;padding:54px 44px;color:#EAF4FA;display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,.85fr);gap:40px;align-items:center;position:relative;overflow:hidden">
       <div style="position:absolute;right:-60px;bottom:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(240,201,127,.22),rgba(240,201,127,0) 66%);animation:rb-glow 6s ease-in-out infinite"></div>
       <div style="position:relative">
         <h2 style="font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(26px,3vw,38px);line-height:1.1;margin:0">Never miss a game night.</h2>
@@ -759,7 +819,7 @@ section[id]{scroll-margin-top:120px}
   </section>
 
   <footer style="margin-top:90px;background:#07202C;background-image:radial-gradient(70% 120% at 10% 0%,#0E3648 0%,#07202C 60%);color:#B9C9D4;padding:60px 24px 34px">
-    <div style="max-width:1160px;margin:0 auto;display:grid;grid-template-columns:minmax(240px,1.2fr) repeat(auto-fit,minmax(150px,1fr));gap:40px">
+    <div class="rb-split" style="max-width:1160px;margin:0 auto;display:grid;grid-template-columns:minmax(240px,1.2fr) repeat(auto-fit,minmax(150px,1fr));gap:40px">
       <div>
         <img src="assets/img/logo-badge-gold.png" alt="Riverbank Bingo" style="height:96px;width:auto;display:block">
         <p style="font-size:15.5px;line-height:1.6;margin:16px 0 0;max-width:26em">Play at home. Est. 2022. Scheduled paper-card bingo with a live caller and local card distribution.</p>
@@ -769,7 +829,7 @@ section[id]{scroll-margin-top:120px}
         <div style="display:grid;gap:9px;font-size:16px">
           <a href="#next" style="color:#CFC6B4">Next game</a>
           <a href="#how" style="color:#CFC6B4">How it works</a>
-          <a href="#demo" style="color:#CFC6B4">Free demo card</a>
+          <a href="#demo" style="color:#CFC6B4">Play along</a>
           <a href="#cards" style="color:#CFC6B4">Find a card</a>
         </div>
       </div>
@@ -818,8 +878,7 @@ class Component extends DCLogic {
     super(props);
     this.state = {
       calls: [], marked: this.freshMarks(), card: this.freshCard(),
-      running: true, bingo: false, now: Date.now(), seed: 0,
-      email: "", firstName: "", unlocked: false, emailError: ""
+      running: true, bingo: false, now: Date.now(), seed: 0
     };
   }
   freshCard(){
@@ -870,67 +929,6 @@ class Component extends DCLogic {
       m[r][c] = !m[r][c];
       return {marked:m, bingo: this.hasBingo(m)};
     });
-  }
-  cardPng(scale){
-    const S = scale || 3;
-    const W = 500, H = 620;
-    const cv = document.createElement("canvas");
-    cv.width = W*S; cv.height = H*S;
-    const x = cv.getContext("2d");
-    x.scale(S,S);
-    x.fillStyle = "#FFFDF6"; x.fillRect(0,0,W,H);
-    x.strokeStyle = "#C9964A"; x.lineWidth = 4; x.strokeRect(10,10,W-20,H-20);
-    x.fillStyle = "#0E3648";
-    x.font = "700 30px Georgia, serif"; x.textAlign = "center";
-    x.fillText("RIVERBANK BINGO", W/2, 58);
-    x.fillStyle = "#7A6A4E"; x.font = "600 14px Helvetica, Arial, sans-serif";
-    x.fillText("Free play-at-home card  ·  no money, no prizes", W/2, 82);
-
-    const gx = 40, gy = 150, cell = 84, gap = 0;
-    const cols = ["#1E78AE","#DF3F2E","#E0A32A","#2E8C4E","#7048B0"];
-    LETTERS.forEach((L,c)=>{
-      x.fillStyle = cols[c];
-      x.font = "700 42px Georgia, serif";
-      x.fillText(L, gx + c*cell + cell/2, gy - 16);
-    });
-    for(let r=0;r<5;r++) for(let c=0;c<5;c++){
-      const px = gx + c*(cell+gap), py = gy + r*(cell+gap);
-      x.fillStyle = "#fff"; x.fillRect(px,py,cell,cell);
-      x.strokeStyle = "#D9CDB2"; x.lineWidth = 2; x.strokeRect(px,py,cell,cell);
-      const n = this.state.card[r][c];
-      if(n===0){
-        x.fillStyle = "#1E78AE"; x.fillRect(px+2,py+2,cell-4,cell-4);
-        x.fillStyle = "#fff"; x.font = "700 18px Helvetica, Arial, sans-serif";
-        x.fillText("FREE", px+cell/2, py+cell/2+6);
-      } else {
-        x.fillStyle = "#22303C"; x.font = "700 34px Georgia, serif";
-        x.fillText(String(n), px+cell/2, py+cell/2+12);
-      }
-    }
-    x.fillStyle = "#7A6A4E"; x.font = "600 13px Helvetica, Arial, sans-serif";
-    x.fillText("Card ID " + this.cardId() + "  ·  Adults 18+  ·  riverbankbingo.com", W/2, H-46);
-    x.fillText("Dab along with the live caller. Practice card only.", W/2, H-26);
-    return cv;
-  }
-  cardId(){
-    let h = 0;
-    this.state.card.forEach(r=>r.forEach(n=>{ h = (h*31 + n) % 99991; }));
-    return "RB-" + String(h).padStart(5,"0");
-  }
-  downloadCard(){
-    const cv = this.cardPng(3);
-    const a = document.createElement("a");
-    a.href = cv.toDataURL("image/png");
-    a.download = "riverbank-bingo-card-" + this.cardId() + ".png";
-    a.click();
-    this.setState({downloaded:true});
-  }
-  printCard(){
-    const cv = this.cardPng(3);
-    const w = window.open("", "_blank");
-    if(!w) return;
-    w.document.write('<title>Riverbank Bingo card</title><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="'+cv.toDataURL("image/png")+'" style="width:100%;max-width:680px" onload="window.print()"></body>');
-    w.document.close();
   }
   nextGame(){
     const d = new Date();
@@ -1042,25 +1040,7 @@ class Component extends DCLogic {
       playLabel: s.running ? "Pause calls" : "Resume calls",
       bingoBannerStyle: "margin-top:26px;border-radius:18px;padding:22px 24px;background:linear-gradient(180deg,#F6D89A,#D8A659)"+
         ";color:#31240C;box-shadow:0 18px 40px rgba(0,0,0,.4);animation:rb-pop .5s ease-out;display:"+(s.bingo?"block":"none"),
-      email: s.email, firstName: s.firstName,
-      onEmail: (e)=>this.setState({email:e.target.value, emailError:""}),
-      onFirstName: (e)=>this.setState({firstName:e.target.value}),
-      onUnlock: ()=>{
-        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.state.email.trim());
-        if(!ok){ this.setState({emailError:"Enter a valid email so we can send your card."}); return; }
-        this.setState({unlocked:true, emailError:""});
-      },
-      emailError: s.emailError,
-      errorStyle: "font-size:13.5px;color:#FFB0A0;margin:10px 0 0;line-height:1.4;display:"+(s.emailError?"block":"none"),
-      gateStyle: "margin-top:26px;background:rgba(255,255,255,.06);border:1px solid rgba(240,201,127,.28);border-radius:18px;padding:22px;display:"+(s.unlocked?"none":"block"),
-      unlockedStyle: "margin-top:26px;background:rgba(46,140,78,.14);border:1px solid rgba(155,221,166,.45);border-radius:18px;padding:22px;display:"+(s.unlocked?"block":"none"),
-      greetingLabel: s.firstName.trim() ? ("Card unlocked, " + s.firstName.trim() + ".") : "Card unlocked.",
-      sentToLabel: s.email.trim(),
-      onNewCard: ()=>this.setState({card:this.freshCard(), marked:this.freshMarks(), bingo:false, downloaded:false}),
-      onDownload: ()=>this.downloadCard(),
-      onPrint: ()=>this.printCard(),
-      cardIdLabel: this.cardId(),
-      downloadNote: s.downloaded ? "Saved. Check your downloads folder — print it, then dab along tonight." : "Free PNG, ready to print on letter or A4. Grab as many cards as you like.",
+      onNewCard: ()=>this.setState({card:this.freshCard(), marked:this.freshMarks(), bingo:false}),
       onTogglePlay: ()=>this.setState(st=>({running:!st.running})),
       onAutoDab: ()=>this.setState(st=>{
         const m = st.marked.map(row=>row.slice());
