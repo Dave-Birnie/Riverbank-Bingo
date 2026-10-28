@@ -32,7 +32,7 @@ DESIGN = ROOT / "design"
 
 # The site is generated straight into the repo root (see the module docstring).
 # Only these paths are ever written or removed by the build — everything else in
-# the repo (source/, tools/, README.md, .git/) is left alone.
+# the repo (source/, tools/, docs/, README.md, .git/) is left alone.
 OUT = ROOT
 # assets/ is produced by tools/extract.py and is NOT listed here — the build
 # must not delete files it cannot regenerate.
@@ -265,7 +265,7 @@ DirectoryIndex index.html
 # repository into the web root, so the non-site files land there too. Hide
 # them: .git would otherwise let anyone download the full repo history.
 RedirectMatch 404 ^/\\.git(/|$)
-RedirectMatch 404 ^/(source|tools)(/|$)
+RedirectMatch 404 ^/(source|tools|docs)(/|$)
 RedirectMatch 404 ^/(README\\.md|\\.gitignore)$
 
 # Friendly URL for the alternate design: /black-gold
