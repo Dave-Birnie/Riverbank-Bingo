@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasFrench;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,10 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Validation\ValidationException;
 
-#[Fillable(['display_name', 'won_on', 'game_id', 'prize_label', 'amount', 'photo_path', 'story', 'consent_confirmed', 'is_published'])]
+#[Fillable(['display_name', 'won_on', 'game_id', 'prize_label', 'prize_label_fr', 'amount', 'photo_path', 'story', 'story_fr', 'consent_confirmed', 'is_published'])]
 class Winner extends Model
 {
-    use HasFactory;
+    use HasFactory, HasFrench;
 
     protected function casts(): array
     {

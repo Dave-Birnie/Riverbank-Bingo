@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use App\Enums\AnnouncementType;
+use App\Models\Concerns\HasFrench;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['type', 'message', 'body', 'link_url', 'link_label', 'starts_at', 'ends_at', 'is_active', 'sort_order'])]
+#[Fillable(['type', 'message', 'message_fr', 'body', 'body_fr', 'link_url', 'link_label', 'link_label_fr', 'starts_at', 'ends_at', 'is_active', 'sort_order'])]
 class Announcement extends Model
 {
-    use HasFactory;
+    use HasFactory, HasFrench;
 
     protected function casts(): array
     {

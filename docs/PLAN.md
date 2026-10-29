@@ -39,22 +39,26 @@ makes that a setting, not a code change.
 ## What's built so far
 
 - **Content model:** games, game templates, distributors, winners,
-  announcements, blog posts, a fixed set of pages, site settings, and contact
-  messages.
+  announcements, news posts, a fixed set of pages, site settings, contact
+  messages, admin logins. Every piece of text players read has a French twin.
 - **Live mode:** one service decides whether a game is live (manual override
   first, otherwise the schedule), with self-expiring Go Live / End Live and a
   `/api/status` endpoint the pages poll every 30 seconds.
-- **Public site** in the Classic design: home (animated flashboard, swapped
-  for "Our game is currently in session" while live), schedule with
-  cancellations, Watch Live, distributors with a map, winners, news, About,
-  How to Play, Rules, Privacy, Become a Distributor and Contact. The Black &
-  Gold design is one setting (`SITE_THEME=black-gold`) and still needs a
-  visual pass.
-- **Owner admin** at `/admin`: every content type, site settings, and a
-  dashboard with Go Live / End Live.
-- **Tests** for live-mode edge cases (window edges, cancellations, overrides,
-  daylight saving), schedule generation, scheduled posts, consent on
-  winners, and every public page.
+- **Public site in English and French**, in the Black & Gold design: home
+  (animated flashboard, swapped for "Our game is currently in session" while
+  live), schedule with cancellations, Watch Live, distributors with a map,
+  winners, news, About, How to Play, Rules, Privacy, Become a Distributor and
+  Contact. French lives under `/fr` with French URLs and a language switch on
+  every page.
+- **Owner admin** at `/admin`: every content type with English / Français tabs,
+  Settings (including the design: Black & Gold or Classic), and a dashboard with
+  Go Live / End Live. Developers also get a Logins screen to create the owner's
+  account.
+- **Deployment:** GitHub Actions tests every push and deploys the chosen branch
+  to Hostinger over SSH (setup steps in the README).
+- **Tests** (45) for live-mode edge cases, schedule generation, scheduled posts,
+  consent on winners, both languages, the design switch, every public page and
+  every admin screen.
 
 ## How live mode works
 
@@ -73,23 +77,24 @@ makes that a setting, not a code change.
 
 ## Remaining phases
 
-**1. Staging on Hostinger.** Create the database and a staging subdomain,
-deploy, create the owner login, load real content. *Done when:* the owner can
-log in on staging and run a full cycle: schedule a month of games, cancel
-one, post a winner, schedule a news post.
+**1. Temp site.** Do the one-time setup in the README, deploy to
+`lightgrey-hornet-559707.hostingersite.com`, create the owner's login, add
+games from the *Every second Tuesday* template and load real distributors.
+*Done when:* the owner can run a full cycle on the temp site in both languages:
+schedule a month, cancel one game, post a winner, schedule a news post.
 
 **2. Owner polish.** Change history with one-click restore, a media library
-for reusable images, address lookup for map pins, field help text written for
-the owner, and a review of the admin wording with them.
+for reusable images, address lookup for map pins, and a review of the admin
+wording with the owner.
 
 **3. Alerts and hardening.** Server cron for scheduled jobs; an email to the
 developer when a game is live but the YouTube channel isn't broadcasting;
 UptimeRobot; two-factor login for the owner; tested backup restore;
 accessibility pass (WCAG 2.1 AA); production security headers.
 
-**4. Launch.** Final copy approved on staging, production domain and SSL,
-search engines allowed, verify forms, map, stream and cron in production,
-then watch the first two game nights.
+**4. Launch.** Final copy approved in both languages, production domain and
+SSL, `APP_ENV=production` (lets search engines in), verify forms, map, stream
+and cron, then watch the first two game nights.
 
 **Later (not in launch)**
 - **AI assistant.** Owner actions already live in the models and services
@@ -97,6 +102,8 @@ then watch the first two game nights.
   assistant can call the same code. It saves drafts only, and the owner
   confirms before anything publishes. Off until purchased; the switch is
   developer-only (`assistant_enabled`).
+- **Play-along practice card.** Not yet, per the client; the comps have it.
+- **Email reminders sign-up.** Needs CASL-compliant consent and a mail provider.
 - **Online card sales.** Needs regulatory authorization first; out of scope.
 
 ## Things to flag to the client
@@ -115,15 +122,20 @@ These are questions for the client and their regulator, not legal advice:
 - **Rules and Privacy copy** have to come from the client; the pages are
   placeholders.
 
+## Decided
+
+- **Design:** Black & Gold, switchable to Classic by the owner in Settings.
+- **Schedule:** every second Tuesday at 6:45 PM.
+- **French:** yes, the whole public site.
+- **Play-along card:** not yet.
+- **Hosting:** the Hostinger temp site for now.
+
 ## Open questions
 
-1. **Design:** Classic (built) or Black & Gold (a theme switch plus a visual
-   pass)?
-2. **Schedule:** "every second Tuesday" means every two weeks? What time does a
-   game end, and when do card sales close? (Sample data assumes 6:45–9:15 PM,
-   sales close 6:00 PM.)
-3. **French:** bilingual at launch, later, or not at all? Affects every page
-   and the admin, so better decided early.
-4. **Play-along demo / reminders sign-up:** the comps had a practice card and an
-   email reminders form. Both are left out; add either?
-5. **Domain:** what's the production domain, and is it already on Hostinger?
+1. **Game length and card cutoff:** when does a game usually end, and when do
+   card sales close? The template assumes 6:45–9:15 PM, with sales closing at
+   6:00. Both are editable.
+2. **French copy review:** the French text (site wording, About, How to Play)
+   was translated for this build. Someone fluent should read it before launch.
+3. **Rules and Privacy copy** in both languages, from the client.
+4. **Production domain**, when it's time to move off the temp site.

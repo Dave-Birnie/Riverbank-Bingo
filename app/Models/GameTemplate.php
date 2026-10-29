@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasFrench;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,10 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
-#[Fillable(['name', 'title', 'weekday', 'interval_weeks', 'start_time', 'duration_minutes', 'sales_close_minutes_before', 'prizes', 'notes'])]
+#[Fillable(['name', 'title', 'title_fr', 'weekday', 'interval_weeks', 'start_time', 'duration_minutes', 'sales_close_minutes_before', 'prizes', 'notes', 'notes_fr'])]
 class GameTemplate extends Model
 {
-    use HasFactory;
+    use HasFactory, HasFrench;
 
     protected function casts(): array
     {
@@ -77,6 +78,7 @@ class GameTemplate extends Model
 
             $created->push($this->games()->create([
                 'title' => $this->title,
+                'title_fr' => $this->title_fr,
                 'starts_at' => $startsAt,
                 'ends_at' => $startsAt->addMinutes($this->duration_minutes),
                 'card_sales_close_at' => $this->sales_close_minutes_before !== null
@@ -84,6 +86,7 @@ class GameTemplate extends Model
                     : null,
                 'prizes' => $this->prizes,
                 'notes' => $this->notes,
+                'notes_fr' => $this->notes_fr,
             ]));
         }
 

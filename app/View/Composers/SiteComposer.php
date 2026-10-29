@@ -6,14 +6,16 @@ use App\Enums\AnnouncementType;
 use App\Enums\GameStatus;
 use App\Models\Announcement;
 use App\Models\Game;
+use App\Support\Format;
 use App\Support\LiveStatus;
+use App\Support\Locales;
 use App\Support\Settings;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
- * Everything the site-wide layout needs: contact details, live state and the
- * scrolling banner.
+ * Everything the site-wide layout needs: contact details, the design the
+ * owner picked, live state, the scrolling banner and the language links.
  */
 class SiteComposer
 {
@@ -21,13 +23,12 @@ class SiteComposer
 
     public function compose(View $view): void
     {
-        $state = $this->live->state();
-
         $view->with([
             'settings' => $this->settings,
-            'live' => $state,
+            'live' => $this->live->state(),
             'bannerItems' => $this->bannerItems(),
-            'theme' => config('riverbank.theme') === 'black-gold' ? 'black-gold' : 'classic',
+            'theme' => $this->settings->theme(),
+            'alternates' => Locales::alternates(),
         ]);
     }
 
@@ -44,21 +45,26 @@ class SiteComposer
             ->whereBetween('starts_at', [now(), now()->addDays(21)])
             ->orderBy('starts_at')
             ->get()
-            ->map(fn (Game $game) => [
-                'text' => $game->starts_at->isoFormat('dddd, MMMM D').' game is cancelled'
-                    .($game->cancellation_note ? ': '.rtrim($game->cancellation_note, '.').'.' : '.'),
-                'url' => route('schedule'),
-                'label' => 'See schedule',
-                'alert' => true,
-            ]);
+            ->map(function (Game $game) {
+                $note = $game->localized('cancellation_note');
+
+                return [
+                    'text' => $note
+                        ? __('The :date game is cancelled: :note', ['date' => Format::day($game->starts_at), 'note' => rtrim($note, '.')]).'.'
+                        : __('The :date game is cancelled.', ['date' => Format::day($game->starts_at)]),
+                    'url' => lroute('schedule'),
+                    'label' => __('See schedule'),
+                    'alert' => true,
+                ];
+            });
 
         $announcements = Announcement::query()->showing()
             ->where('type', AnnouncementType::Banner)
             ->get()
             ->map(fn (Announcement $a) => [
-                'text' => $a->message,
+                'text' => $a->localized('message'),
                 'url' => $a->link_url,
-                'label' => $a->link_label ?: ($a->link_url ? 'Learn more' : null),
+                'label' => $a->localized('link_label') ?: ($a->link_url ? __('Learn more') : null),
                 'alert' => false,
             ]);
 

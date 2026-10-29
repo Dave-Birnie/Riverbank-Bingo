@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Distributors;
 
 use App\Enums\DistributorType;
 use App\Filament\Resources\Distributors\Pages\ManageDistributors;
+use App\Filament\Support\Bilingual;
 use App\Models\Distributor;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
@@ -49,8 +50,11 @@ class DistributorResource extends Resource
                     TextInput::make('address')->maxLength(255),
                     TextInput::make('city')->maxLength(255),
                     TextInput::make('region')->label('Province / state')->maxLength(255)->default('QC'),
-                    Textarea::make('hours')->rows(3)->placeholder("Mon–Sat 8 AM – 9 PM\nSun 10 AM – 6 PM"),
-                    Textarea::make('notes')->label('Notes for players')->rows(3),
+                    Bilingual::tabs(fn (string $lang, bool $english) => [
+                        Textarea::make("hours{$lang}")->label('Hours')->rows(3)
+                            ->placeholder($english ? "Mon–Sat 8 AM – 9 PM\nSun 10 AM – 6 PM" : "Lun–sam 8 h – 21 h\nDim 10 h – 18 h"),
+                        Textarea::make("notes{$lang}")->label('Notes for players')->rows(3),
+                    ]),
                 ]),
             Section::make('Map pin')
                 ->description('In Google Maps, right-click the spot and click the two numbers at the top of the menu to copy them. Paste the first into Latitude and the second into Longitude. Leave both empty to keep this distributor off the map.')

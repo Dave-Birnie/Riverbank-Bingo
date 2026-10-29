@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Pages;
 
 use App\Filament\Resources\Pages\Pages\EditPage;
 use App\Filament\Resources\Pages\Pages\ListPages;
+use App\Filament\Support\Bilingual;
 use App\Models\Page;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -12,7 +13,6 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -37,18 +37,13 @@ class PageResource extends Resource
     protected static ?string $recordTitleAttribute = 'title';
 
     /** Where each page lives on the public site. */
-    public static function publicUrl(Page $page): string
+    public static function publicUrl(Page $page, string $locale = 'en'): string
     {
-        return match ($page->key) {
-            'home' => route('home'),
-            'schedule' => route('schedule'),
-            'watch-live' => route('watch'),
-            'distributors' => route('distributors'),
-            'winners' => route('winners'),
-            'blog' => route('blog'),
-            'contact' => route('contact'),
-            default => route('page', $page->key),
-        };
+        return lroute(match ($page->key) {
+            'watch-live' => 'watch',
+            'home', 'schedule', 'distributors', 'winners', 'blog', 'contact' => $page->key,
+            default => "page.{$page->key}",
+        }, locale: $locale);
     }
 
     public static function canCreate(): bool
@@ -69,27 +64,26 @@ class PageResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->schema([
-                    TextInput::make('title')
-                        ->label(fn (?Page $record) => $record?->key === 'home' ? 'Headline' : 'Title')
-                        ->required()
-                        ->maxLength(255),
-                    Textarea::make('intro')
-                        ->label('Introduction')
-                        ->rows(2)
-                        ->helperText('The short line under the title.'),
-                    RichEditor::make('body')
-                        ->label('Page copy')
-                        ->helperText('Type [phone] or [email] to insert the contact details from Settings.')
-                        ->fileAttachmentsDisk('public')
-                        ->fileAttachmentsDirectory('pages')
-                        ->fileAttachmentsVisibility('public'),
-                    TextInput::make('meta_description')
-                        ->label('Search engine description')
-                        ->maxLength(255)
-                        ->helperText('Optional. One sentence shown under the page in Google results.'),
-                ]),
+            Bilingual::tabs(fn (string $lang, bool $english) => [
+                TextInput::make("title{$lang}")
+                    ->label(fn (?Page $record) => $record?->key === 'home' ? 'Headline' : 'Title')
+                    ->required($english)
+                    ->maxLength(255),
+                Textarea::make("intro{$lang}")
+                    ->label('Introduction')
+                    ->rows(2)
+                    ->helperText('The short line under the title.'),
+                RichEditor::make("body{$lang}")
+                    ->label('Page copy')
+                    ->helperText('Type [phone] or [email] to insert the contact details from Settings.')
+                    ->fileAttachmentsDisk('public')
+                    ->fileAttachmentsDirectory('pages')
+                    ->fileAttachmentsVisibility('public'),
+                TextInput::make("meta_description{$lang}")
+                    ->label('Search engine description')
+                    ->maxLength(255)
+                    ->helperText('Optional. One sentence shown under the page in Google results.'),
+            ]),
         ])->columns(1);
     }
 
@@ -110,6 +104,12 @@ class PageResource extends Resource
                     ->icon(Heroicon::OutlinedEye)
                     ->color('gray')
                     ->url(fn (Page $record) => static::publicUrl($record))
+                    ->openUrlInNewTab(),
+                Action::make('viewFrench')
+                    ->label('Voir (FR)')
+                    ->icon(Heroicon::OutlinedLanguage)
+                    ->color('gray')
+                    ->url(fn (Page $record) => static::publicUrl($record, 'fr'))
                     ->openUrlInNewTab(),
                 EditAction::make(),
             ]);

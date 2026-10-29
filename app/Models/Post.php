@@ -3,16 +3,17 @@
 namespace App\Models;
 
 use App\Enums\PostStatus;
+use App\Models\Concerns\HasFrench;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-#[Fillable(['title', 'slug', 'excerpt', 'body', 'cover_image_path', 'status', 'published_at'])]
+#[Fillable(['title', 'title_fr', 'slug', 'excerpt', 'excerpt_fr', 'body', 'body_fr', 'cover_image_path', 'status', 'published_at'])]
 class Post extends Model
 {
-    use HasFactory;
+    use HasFactory, HasFrench;
 
     protected function casts(): array
     {

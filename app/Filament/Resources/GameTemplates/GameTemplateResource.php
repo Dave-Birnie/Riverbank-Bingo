@@ -4,6 +4,7 @@ namespace App\Filament\Resources\GameTemplates;
 
 use App\Filament\Resources\Games\GameResource;
 use App\Filament\Resources\GameTemplates\Pages\ManageGameTemplates;
+use App\Filament\Support\Bilingual;
 use App\Models\GameTemplate;
 use BackedEnum;
 use Carbon\CarbonImmutable;
@@ -50,10 +51,6 @@ class GameTemplateResource extends Resource
                         ->label('Template name')
                         ->required()
                         ->placeholder('Regular Tuesday'),
-                    TextInput::make('title')
-                        ->label('Game title players see')
-                        ->required()
-                        ->default('Tuesday Night Bingo'),
                     Select::make('weekday')
                         ->options(self::WEEKDAYS)
                         ->default(2)
@@ -81,10 +78,19 @@ class GameTemplateResource extends Resource
                         ->minValue(0)
                         ->default(45),
                 ]),
+            Section::make('What players see')
+                ->schema([
+                    Bilingual::tabs(fn (string $lang, bool $english) => [
+                        TextInput::make("title{$lang}")
+                            ->label('Game title')
+                            ->required($english)
+                            ->default($english ? 'Tuesday Night Bingo' : 'Bingo du mardi soir'),
+                        Textarea::make("notes{$lang}")->label('Notes for players')->rows(2),
+                    ]),
+                ]),
             Section::make('Prizes')
                 ->schema([
                     GameResource::prizesRepeater(),
-                    Textarea::make('notes')->label('Notes for players')->rows(2),
                 ]),
         ])->columns(1);
     }

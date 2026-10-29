@@ -74,6 +74,7 @@
     var current = flash.querySelector('.ball-current');
     var cage = flash.querySelector('[data-cage]');
     var countLabel = flash.querySelector('[data-call-count]');
+    var countText = flash.getAttribute('data-called-label') || ':count called';
     var cells = {};
     var calls = [];
 
@@ -138,7 +139,7 @@
       void current.offsetWidth; // restart the drop animation
       current.classList.add('is-new');
 
-      if (countLabel) countLabel.textContent = calls.length + ' called';
+      if (countLabel) countLabel.textContent = countText.replace(':count', calls.length);
       paintCage();
     }
 

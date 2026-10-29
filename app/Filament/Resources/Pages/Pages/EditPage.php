@@ -20,6 +20,12 @@ class EditPage extends EditRecord
                 ->color('gray')
                 ->url(fn () => PageResource::publicUrl($this->record))
                 ->openUrlInNewTab(),
+            Action::make('viewFrench')
+                ->label('Voir (FR)')
+                ->icon(Heroicon::OutlinedLanguage)
+                ->color('gray')
+                ->url(fn () => PageResource::publicUrl($this->record, 'fr'))
+                ->openUrlInNewTab(),
         ];
     }
 }

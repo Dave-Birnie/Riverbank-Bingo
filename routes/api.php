@@ -1,11 +1,8 @@
 <?php
 
-use App\Support\LiveStatus;
+use App\Http\Controllers\StatusController;
 use Illuminate\Support\Facades\Route;
 
-// Polled by every public page so the live banner flips without a reload.
-Route::get('/status', fn (LiveStatus $live) => response()
-    ->json($live->toArray())
-    ->header('Cache-Control', 'no-cache'))
+Route::get('/status', StatusController::class)
     ->middleware('throttle:120,1')
     ->name('status');

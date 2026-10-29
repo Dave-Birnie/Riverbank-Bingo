@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use App\Enums\DistributorType;
+use App\Models\Concerns\HasFrench;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'type', 'address', 'city', 'region', 'postal_code', 'phone', 'hours', 'notes', 'latitude', 'longitude', 'is_active', 'sort_order'])]
+#[Fillable(['name', 'type', 'address', 'city', 'region', 'postal_code', 'phone', 'hours', 'hours_fr', 'notes', 'notes_fr', 'latitude', 'longitude', 'is_active', 'sort_order'])]
 class Distributor extends Model
 {
-    use HasFactory;
+    use HasFactory, HasFrench;
 
     protected function casts(): array
     {

@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
+use App\Filament\Support\Bilingual;
 use App\Models\Post;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -49,29 +50,34 @@ class PostResource extends Resource
                 Section::make()
                     ->columnSpan(2)
                     ->schema([
-                        TextInput::make('title')
-                            ->required()
-                            ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (string $operation, ?string $state, Set $set) {
-                                if ($operation === 'create') {
-                                    $set('slug', Str::slug((string) $state));
-                                }
-                            }),
+                        Bilingual::tabs(fn (string $lang, bool $english) => [
+                            TextInput::make("title{$lang}")
+                                ->label('Title')
+                                ->required($english)
+                                ->maxLength(255)
+                                ->live(onBlur: $english)
+                                ->afterStateUpdated(function (string $operation, ?string $state, Set $set) use ($english) {
+                                    if ($english && $operation === 'create') {
+                                        $set('slug', Str::slug((string) $state));
+                                    }
+                                }),
+                            Textarea::make("excerpt{$lang}")
+                                ->label('Summary')
+                                ->rows(2)
+                                ->helperText('Shown on the news list and in search results.'),
+                            RichEditor::make("body{$lang}")
+                                ->label('Post')
+                                ->fileAttachmentsDisk('public')
+                                ->fileAttachmentsDirectory('posts')
+                                ->fileAttachmentsVisibility('public'),
+                        ]),
                         TextInput::make('slug')
                             ->label('Web address')
                             ->prefix('/news/')
                             ->required()
                             ->unique(ignoreRecord: true)
-                            ->alphaDash(),
-                        Textarea::make('excerpt')
-                            ->label('Summary')
-                            ->rows(2)
-                            ->helperText('Shown on the news list and in search results.'),
-                        RichEditor::make('body')
-                            ->fileAttachmentsDisk('public')
-                            ->fileAttachmentsDirectory('posts')
-                            ->fileAttachmentsVisibility('public'),
+                            ->alphaDash()
+                            ->helperText('The same address is used on the French site, under /fr/nouvelles/.'),
                     ]),
                 Section::make('Publishing')
                     ->columnSpan(1)

@@ -1,6 +1,6 @@
 {{-- Scrolling announcement strip. The list is doubled so the marquee loops seamlessly. --}}
 @php $loop_items = $items->count() < 3 ? $items->concat($items)->concat($items) : $items; @endphp
-<div class="banner" role="region" aria-label="Announcements">
+<div class="banner" role="region" aria-label="{{ __('Announcements') }}">
     <ul class="sr-only">
         @foreach ($items as $item)
             <li>{{ $item['text'] }}</li>

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Winners;
 
 use App\Filament\Resources\Winners\Pages\ManageWinners;
+use App\Filament\Support\Bilingual;
 use App\Models\Game;
 use App\Models\Winner;
 use BackedEnum;
@@ -53,7 +54,6 @@ class WinnerResource extends Resource
                         ->options(fn () => Game::query()->orderByDesc('starts_at')->limit(40)->get()
                             ->mapWithKeys(fn (Game $g) => [$g->id => $g->starts_at->isoFormat('MMM D, YYYY').' — '.$g->title]))
                         ->searchable(),
-                    TextInput::make('prize_label')->label('Prize')->placeholder('Jackpot #3'),
                     TextInput::make('amount')->numeric()->prefix('$')->minValue(0),
                     FileUpload::make('photo_path')
                         ->label('Photo')
@@ -61,7 +61,10 @@ class WinnerResource extends Resource
                         ->disk('public')
                         ->directory('winners')
                         ->maxSize(4096),
-                    Textarea::make('story')->rows(3)->columnSpanFull(),
+                    Bilingual::tabs(fn (string $lang, bool $english) => [
+                        TextInput::make("prize_label{$lang}")->label('Prize')->placeholder($english ? 'Jackpot #3' : 'Gros lot no 3'),
+                        Textarea::make("story{$lang}")->label('Story')->rows(3),
+                    ]),
                 ]),
             Section::make('Publishing')
                 ->schema([

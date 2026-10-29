@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Announcements;
 
 use App\Enums\AnnouncementType;
 use App\Filament\Resources\Announcements\Pages\ManageAnnouncements;
+use App\Filament\Support\Bilingual;
 use App\Models\Announcement;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
@@ -40,19 +41,20 @@ class AnnouncementResource extends Resource
             Section::make()
                 ->columns(2)
                 ->schema([
-                    TextInput::make('message')
-                        ->label('Banner text')
-                        ->required()
-                        ->maxLength(200)
-                        ->columnSpanFull()
-                        ->helperText('Scrolls across the top of every page. Cancelled games are announced automatically; no need to add those.'),
+                    Bilingual::tabs(fn (string $lang, bool $english) => [
+                        TextInput::make("message{$lang}")
+                            ->label('Banner text')
+                            ->required($english)
+                            ->maxLength(200)
+                            ->helperText('Scrolls across the top of every page. Cancelled games are announced automatically; no need to add those.'),
+                        TextInput::make("link_label{$lang}")->label('Link text')->placeholder($english ? 'Learn more' : 'En savoir plus'),
+                        Textarea::make("body{$lang}")->label('Details (special events)')->rows(3),
+                    ]),
                     Select::make('type')->options(AnnouncementType::class)->default(AnnouncementType::Banner)->required(),
                     Toggle::make('is_active')->label('Switched on')->default(true)->inline(false),
                     TextInput::make('link_url')->label('Link (optional)')->url()->placeholder('https://'),
-                    TextInput::make('link_label')->label('Link text')->placeholder('Learn more'),
                     DateTimePicker::make('starts_at')->label('Show from')->seconds(false)->helperText('Empty = right away'),
                     DateTimePicker::make('ends_at')->label('Show until')->seconds(false)->after('starts_at')->helperText('Empty = until switched off'),
-                    Textarea::make('body')->label('Details (special events)')->rows(3)->columnSpanFull(),
                 ]),
         ])->columns(1);
     }

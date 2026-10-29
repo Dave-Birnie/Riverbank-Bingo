@@ -19,10 +19,19 @@ class Settings
         'youtube_channel_id' => null,
         'stream_url' => null,
         'offline_message' => 'The next game starts soon. Get your cards ready!',
+        'offline_message_fr' => 'La prochaine partie commence bientôt. Préparez vos cartes!',
         'delivery_areas' => null,
+        'delivery_areas_fr' => null,
         'progressives' => [],
         'live_override' => null,
         'assistant_enabled' => false,
+        'site_theme' => 'black-gold',
+    ];
+
+    /** The two designs the owner can pick between. */
+    public const THEMES = [
+        'black-gold' => 'Black & Gold',
+        'classic' => 'Classic',
     ];
 
     /** @var array<string, mixed>|null */
@@ -55,6 +64,23 @@ class Settings
         }
 
         $this->values = null;
+    }
+
+    /** A text setting in the current language; falls back to English when the French is blank. */
+    public function localized(string $key): mixed
+    {
+        $locale = app()->getLocale();
+
+        if ($locale !== 'en' && filled($value = $this->get("{$key}_{$locale}"))) {
+            return $value;
+        }
+
+        return $this->get($key);
+    }
+
+    public function theme(): string
+    {
+        return array_key_exists($theme = (string) $this->get('site_theme'), self::THEMES) ? $theme : 'black-gold';
     }
 
     /** Digits only, for tel: links. */

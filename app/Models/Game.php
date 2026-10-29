@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GameStatus;
+use App\Models\Concerns\HasFrench;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['game_template_id', 'title', 'starts_at', 'ends_at', 'card_sales_close_at', 'status', 'cancellation_note', 'prizes', 'notes'])]
+#[Fillable(['game_template_id', 'title', 'title_fr', 'starts_at', 'ends_at', 'card_sales_close_at', 'status', 'cancellation_note', 'cancellation_note_fr', 'prizes', 'notes', 'notes_fr'])]
 class Game extends Model
 {
-    use HasFactory;
+    use HasFactory, HasFrench;
 
     protected function casts(): array
     {
@@ -61,13 +62,13 @@ class Game extends Model
             && $this->ends_at->gt(now());
     }
 
-    public function cancel(?string $note = null): void
+    public function cancel(?string $note = null, ?string $noteFr = null): void
     {
-        $this->update(['status' => GameStatus::Cancelled, 'cancellation_note' => $note]);
+        $this->update(['status' => GameStatus::Cancelled, 'cancellation_note' => $note, 'cancellation_note_fr' => $noteFr]);
     }
 
     public function reinstate(): void
     {
-        $this->update(['status' => GameStatus::Scheduled, 'cancellation_note' => null]);
+        $this->update(['status' => GameStatus::Scheduled, 'cancellation_note' => null, 'cancellation_note_fr' => null]);
     }
 }

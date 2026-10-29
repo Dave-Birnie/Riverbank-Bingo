@@ -14,4 +14,4 @@
 @push('scripts')
     <script src="{{ asset('vendor/leaflet/leaflet.js') }}"></script>
 @endpush
-<div class="map {{ $class ?? '' }}" data-map="{{ $pins->toJson() }}" role="region" aria-label="Map of card distributors"></div>
+<div class="map {{ $class ?? '' }}" data-map="{{ $pins->toJson() }}" role="region" aria-label="{{ __('Map of card distributors') }}"></div>

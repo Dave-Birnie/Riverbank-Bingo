@@ -76,7 +76,7 @@ class SiteController extends Controller
     /** Signed-in admins can open drafts and scheduled posts to preview them. */
     public function post(Request $request, Post $post): View
     {
-        $isLive = $post->status === PostStatus::Published && $post->published_at?->isPast();
+        $isLive = $post->status === PostStatus::Published && $post->published_at?->lte(now());
 
         abort_unless($isLive || $request->user(), 404);
 
@@ -92,7 +92,7 @@ class SiteController extends Controller
     {
         // Bots fill in the hidden field; pretend it worked.
         if (filled($request->input('website'))) {
-            return redirect()->route('contact')->with('sent', true);
+            return redirect(lroute('contact'))->with('sent', true);
         }
 
         $data = $request->validate([
@@ -103,12 +103,13 @@ class SiteController extends Controller
             'message' => ['required', 'string', 'max:5000'],
         ]);
 
-        $message = ContactMessage::create($data);
+        $message = ContactMessage::create($data + ['locale' => app()->getLocale()]);
 
         if ($to = $settings->get('business_email')) {
             try {
                 Mail::raw(
                     "{$message->topicLabel()} from {$message->name} <{$message->email}>"
+                        .($message->locale === 'fr' ? ' (wrote in French)' : '')
                         .($message->phone ? "\nPhone: {$message->phone}" : '')
                         ."\n\n{$message->message}",
                     fn ($mail) => $mail->to($to)->replyTo($message->email, $message->name)
@@ -120,6 +121,6 @@ class SiteController extends Controller
             }
         }
 
-        return redirect()->route('contact')->with('sent', true);
+        return redirect(lroute('contact'))->with('sent', true);
     }
 }

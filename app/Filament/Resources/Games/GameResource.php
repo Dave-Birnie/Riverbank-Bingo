@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Filament\Resources\Games\Pages\CreateGame;
 use App\Filament\Resources\Games\Pages\EditGame;
 use App\Filament\Resources\Games\Pages\ListGames;
+use App\Filament\Support\Bilingual;
 use App\Models\Game;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -47,10 +48,6 @@ class GameResource extends Resource
             Section::make('Game')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('title')
-                        ->required()
-                        ->maxLength(255)
-                        ->default('Tuesday Night Bingo'),
                     Select::make('status')
                         ->options(GameStatus::class)
                         ->default(GameStatus::Scheduled)
@@ -70,17 +67,24 @@ class GameResource extends Resource
                         ->label('Card sales close')
                         ->seconds(false)
                         ->beforeOrEqual('starts_at'),
-                    Textarea::make('cancellation_note')
-                        ->label('Reason for cancelling (shown to players)')
-                        ->rows(2)
-                        ->visible(fn (Get $get) => $get('status') === GameStatus::Cancelled || $get('status') === GameStatus::Cancelled->value),
+                    Bilingual::tabs(fn (string $lang, bool $english) => [
+                        TextInput::make("title{$lang}")
+                            ->label('Title')
+                            ->required($english)
+                            ->maxLength(255)
+                            ->default($english ? 'Tuesday Night Bingo' : 'Bingo du mardi soir'),
+                        Textarea::make("notes{$lang}")
+                            ->label('Notes for players')
+                            ->rows(2),
+                        Textarea::make("cancellation_note{$lang}")
+                            ->label('Reason for cancelling (shown to players)')
+                            ->rows(2)
+                            ->visible(fn (Get $get) => $get('status') === GameStatus::Cancelled || $get('status') === GameStatus::Cancelled->value),
+                    ]),
                 ]),
             Section::make('Prizes')
                 ->schema([
                     static::prizesRepeater(),
-                    Textarea::make('notes')
-                        ->label('Notes for players')
-                        ->rows(2),
                 ]),
         ])->columns(1);
     }
@@ -91,11 +95,13 @@ class GameResource extends Resource
         return Repeater::make('prizes')
             ->hiddenLabel()
             ->schema([
-                TextInput::make('name')->required()->placeholder('Jackpot #1'),
-                TextInput::make('pattern')->placeholder('Full card'),
-                TextInput::make('amount')->numeric()->prefix('$')->minValue(0),
+                TextInput::make('name')->label('Prize')->required()->placeholder('Jackpot #1')->columnSpan(2),
+                TextInput::make('name_fr')->label('Prize (French)')->placeholder('Gros lot no 1')->columnSpan(2),
+                TextInput::make('amount')->numeric()->prefix('$')->minValue(0)->columnSpan(2),
+                TextInput::make('pattern')->placeholder('Full card')->columnSpan(3),
+                TextInput::make('pattern_fr')->label('Pattern (French)')->placeholder('Carte pleine')->columnSpan(3),
             ])
-            ->columns(3)
+            ->columns(6)
             ->defaultItems(0)
             ->reorderable()
             ->addActionLabel('Add prize');
@@ -138,8 +144,9 @@ class GameResource extends Resource
                     ->modalDescription('Players will see the game marked as cancelled on the schedule, and a notice in the banner.')
                     ->schema([
                         Textarea::make('note')->label('Reason (optional, shown to players)')->rows(2),
+                        Textarea::make('note_fr')->label('Reason in French (optional)')->rows(2),
                     ])
-                    ->action(fn (Game $record, array $data) => $record->cancel($data['note'] ?? null)),
+                    ->action(fn (Game $record, array $data) => $record->cancel($data['note'] ?? null, $data['note_fr'] ?? null)),
                 Action::make('reinstate')
                     ->icon(Heroicon::OutlinedArrowUturnLeft)
                     ->color('gray')

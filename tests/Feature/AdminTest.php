@@ -74,17 +74,30 @@ class AdminTest extends TestCase
         $this->get('/admin')->assertRedirect('/admin/login');
     }
 
-    public function test_pages_can_be_edited_but_not_created(): void
+    public function test_pages_can_be_edited_in_both_languages_but_not_created(): void
     {
         $this->get('/admin/pages/create')->assertNotFound();
 
         $about = Page::for('about');
         Livewire::test(EditPage::class, ['record' => $about->getRouteKey()])
-            ->fillForm(['title' => 'About Riverbank'])
+            ->fillForm(['title' => 'About Riverbank', 'title_fr' => 'À propos de Riverbank'])
             ->call('save')
             ->assertHasNoFormErrors();
 
         $this->assertSame('About Riverbank', $about->fresh()->title);
+        $this->assertSame('À propos de Riverbank', $about->fresh()->title_fr);
+    }
+
+    public function test_owner_can_switch_the_design(): void
+    {
+        Livewire::test(SiteSettings::class)
+            ->assertSet('data.site_theme', 'black-gold')
+            ->fillForm(['site_theme' => 'classic'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->app->forgetScopedInstances();
+        $this->assertSame('classic', app(Settings::class)->theme());
     }
 
     public function test_owner_can_cancel_a_game_from_the_list(): void
@@ -141,6 +154,31 @@ class AdminTest extends TestCase
         $this->app->forgetScopedInstances();
         $this->assertSame('450-555-0199', app(Settings::class)->get('business_phone'));
         $this->assertTrue(app(LiveStatus::class)->isLive());
+    }
+
+    public function test_only_developers_manage_logins(): void
+    {
+        $this->get('/admin/users')->assertForbidden();
+
+        $developer = User::query()->where('role', 'developer')->firstOrFail();
+        $this->flushSession();
+        $this->actingAs($developer)->get('/admin/users')->assertOk();
+    }
+
+    public function test_deploy_creates_the_first_admin_login_once(): void
+    {
+        putenv('ADMIN_EMAIL=dev@riverbank.test');
+        putenv('ADMIN_PASSWORD=a-long-enough-password');
+
+        try {
+            $this->artisan('riverbank:admin')->assertSuccessful();
+            $this->artisan('riverbank:admin')->expectsOutputToContain('already exists')->assertSuccessful();
+        } finally {
+            putenv('ADMIN_EMAIL');
+            putenv('ADMIN_PASSWORD');
+        }
+
+        $this->assertSame('developer', User::query()->where('email', 'dev@riverbank.test')->value('role'));
     }
 
     public function test_only_developers_can_switch_on_the_assistant(): void

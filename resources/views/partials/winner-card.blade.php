@@ -1,3 +1,4 @@
+@php use App\Support\Format; @endphp
 <article class="card winner">
     <div class="winner-photo">
         @if ($winner->photo_path)
@@ -8,9 +9,9 @@
     </div>
     <div class="winner-body">
         <div class="winner-amount">
-            {{ $winner->amount ? '$'.number_format((float) $winner->amount) : '' }} {{ $winner->prize_label }}
+            {{ $winner->amount ? Format::money($winner->amount) : '' }} {{ $winner->localized('prize_label') }}
         </div>
-        @if ($winner->story)<p class="winner-story">{{ $winner->story }}</p>@endif
-        <div class="winner-who">{{ $winner->display_name }} · {{ $winner->won_on->isoFormat('MMMM D, YYYY') }}</div>
+        @if ($winner->localized('story'))<p class="winner-story">{{ $winner->localized('story') }}</p>@endif
+        <div class="winner-who">{{ $winner->display_name }} · {{ Format::date($winner->won_on) }}</div>
     </div>
 </article>
