@@ -1,0 +1,22 @@
+# Never uploaded: repo-only files.
+/.git
+/.github
+/design
+/docs
+/tests
+/node_modules
+/phpunit.xml
+/.editorconfig
+/.gitattributes
+/.gitignore
+/README.md
+
+# Never uploaded and never deleted on the server: data and per-server state.
+/.env
+/storage/
+/public/storage
+/public/css/filament
+/public/js/filament
+/public/fonts/filament
+/bootstrap/cache/*.php
+/database/database.sqlite

@@ -1,144 +1,206 @@
-# Riverbank Bingo — temp review site
+# Riverbank Bingo
 
-Two homepage design options for Riverbank Bingo, built as a plain static site
-so they can be hosted side by side on Hostinger for client review.
+The website for Riverbank Bingo, Kahnawake's live-streamed bingo, in English and
+French: the game schedule, live broadcast, distributors map, winners and news,
+plus an admin panel where the owner runs all of it.
 
-| Design | Page | URL once deployed |
-| --- | --- | --- |
-| **Classic** (light) | `index.html` | `https://yourdomain.com/` |
-| **Black & Gold** | `black-gold.html` | `https://yourdomain.com/black-gold` |
+Built with **Laravel 13** and the **Filament** admin panel. Runs on ordinary PHP
+hosting (Hostinger Business) with the MySQL database that comes with the plan.
+No Node build step, no paid services. See [`docs/PLAN.md`](docs/PLAN.md) for the
+plan and the reasoning behind the stack.
 
-Both are play-at-home designs: the header carries a **Play at Home** badge, the
-hero leads on playing from your own table, and the primary CTA everywhere is
-**How to Play**. Both pages carry a **light-bulb button** in the bottom-right
-corner that swaps between the two designs. Your scroll position carries across, so it reads like a
-theme switch rather than a jump to a different page. The bulb is lit on the
-Classic design (click to turn the lights down) and dimmed on Black & Gold
-(click to turn them back up).
-
-Each design also has its own URL, so you can send a client straight to one.
+| | |
+| --- | --- |
+| Public site (English) | `/`, `/schedule`, `/watch-live`, … |
+| Public site (French) | `/fr`, `/fr/horaire`, `/fr/en-direct`, … |
+| Owner admin | `/admin` |
+| Live status (JSON, polled by the pages) | `/api/status` |
 
 ---
 
-## Deploying to Hostinger
+## Deploying to the Hostinger temp site
 
-The site is generated **at the repository root** — `index.html` is the first
-thing in the repo, not tucked inside a `public/` folder. Hostinger's Git
-integration clones the whole repository into your web root, so this is what
-makes the site serve from `/` rather than `/public/`.
+Pushes are tested and deployed by GitHub Actions over SSH
+([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)). Nothing deploys
+until the settings below exist. One-time setup, about 15 minutes:
 
-### Option A — connect the GitHub repo (recommended)
+### 1. In hPanel (for the website `lightgrey-hornet-559707.hostingersite.com`)
 
-1. hPanel → **Websites →** your domain → **Advanced → GIT**
-2. **Repository:** `https://github.com/Dave-Birnie/Riverbank-Bingo.git`
-3. **Branch:** `claude/riverbank-bingo-temp-site-jlhsdq`
-4. **Directory:** leave blank to deploy into `public_html`
-5. **Create**, then hit **Deploy** on the entry it adds
+1. **Remove the old Git deployment.** Advanced → **GIT** → delete the entry for
+   the review site, so it can't overwrite the new one. (The review site's files
+   are kept as a dated backup folder on the first deploy.)
+2. **PHP:** Advanced → **PHP Configuration** → PHP **8.3** or newer. Under
+   *PHP extensions* make sure `intl`, `pdo_mysql`, `mbstring` and `fileinfo` are on.
+3. **Database:** Databases → **MySQL Databases** → create a database and user.
+   Note the database name, user name and password (Hostinger prefixes them,
+   e.g. `u123456789_riverbank`).
+4. **SSH:** Advanced → **SSH Access** → enable it and note the **IP**, **port**
+   (usually 65002) and **username**.
+5. **SSH key:** on your computer run
+   `ssh-keygen -t ed25519 -f riverbank_deploy -N ""`, then in SSH Access add the
+   contents of `riverbank_deploy.pub` as a key. The other file,
+   `riverbank_deploy`, goes into GitHub in the next step.
 
-The repo is public, so no deploy key or SSH setup is needed. To push updates
-later, commit and press **Deploy** again — or use **Auto-Deployment** to have
-Hostinger pull on every push.
+### 2. In GitHub (repo → Settings → Secrets and variables → Actions)
 
-`public_html` must be empty first — delete Hostinger's placeholder
-(`index.html` / `default.php`) or the clone will refuse to run.
+**Variables** tab:
 
-### Option B — manual upload
+| Name | Value |
+| --- | --- |
+| `SITE_DOMAIN` | `lightgrey-hornet-559707.hostingersite.com` |
+| `DEPLOY_BRANCH` | the branch to deploy, e.g. `ccr-d308271b-s2ytoh` |
+| `PHP_BIN` | *(optional)* only if the deploy says the server's PHP is too old, e.g. `/opt/alt/php83/usr/bin/php` |
 
-1. hPanel → **Files → File Manager**, open `public_html`
-2. Delete the placeholder files
-3. Upload everything from this repo *except* `source/`, `tools/`, `README.md`
-   and `.gitignore` — i.e. `index.html`, `black-gold.html`, `assets/`,
-   `robots.txt` and `.htaccess`
-4. File Manager → **Settings → Show hidden files** to confirm `.htaccess`
-   arrived
+**Secrets** tab:
 
-### What gets served
+| Name | Value |
+| --- | --- |
+| `SSH_HOST` | the IP from SSH Access |
+| `SSH_PORT` | the port from SSH Access |
+| `SSH_USER` | the username from SSH Access |
+| `SSH_KEY` | the whole contents of `riverbank_deploy` (the private key) |
+| `ADMIN_EMAIL` | your email: the first admin login |
+| `ADMIN_PASSWORD` | a password for it, at least 12 characters |
+| `ENV_FILE` | the site settings: copy the block below and fill in the database and mail values |
+| `SSH_KNOWN_HOSTS` | *(optional)* pins the server's identity; output of `ssh-keyscan -p PORT IP` |
+
+`ENV_FILE`:
 
 ```
-index.html          Classic homepage
-black-gold.html     Black & Gold homepage
-robots.txt          Keeps the review site out of search engines
-.htaccess           Compression, cache headers, /black-gold pretty URL
-assets/js/          React + the Design Component runtime that drives the demo
-assets/fonts/       Bevan, Source Sans 3, Playfair Display, Jost (self-hosted)
-assets/img/         Logo badges, wordmark, favicon
+APP_NAME="Riverbank Bingo"
+APP_ENV=staging
+APP_DEBUG=false
+APP_KEY=
+APP_URL=https://lightgrey-hornet-559707.hostingersite.com
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=u123456789_riverbank
+DB_USERNAME=u123456789_riverbank
+DB_PASSWORD=...
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=sync
+LOG_CHANNEL=daily
+LOG_LEVEL=warning
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_SCHEME=smtps
+MAIL_USERNAME=website@yourdomain.com
+MAIL_PASSWORD=...
+MAIL_FROM_ADDRESS=website@yourdomain.com
+MAIL_FROM_NAME="Riverbank Bingo"
 ```
 
-About 1.2 MB. The repo also carries `source/`, `tools/` and this README, which
-a Git deploy drops into the web root alongside the site — `.htaccess` returns
-404 for those, and for `.git/`, which would otherwise let anyone download the
-full repository history.
+Leave `APP_KEY` empty; the first deploy generates it. `APP_ENV=staging` keeps
+the temp site out of search engines; switch to `production` on the real domain.
+The `.env` is only written on the first deploy. After that, change it on the
+server (hPanel File Manager → `domains/<site>/riverbank/.env`).
 
-### A note on search engines
+### 3. Deploy
 
-This is an unfinished review site, so both pages are marked `noindex, nofollow`
-and `robots.txt` disallows crawling. **Remove those before this becomes the real
-site** — see `robots.txt`, the `X-Robots-Tag` header in `.htaccess`,
-and the `robots` meta tag in each page (the `HEAD_EXTRA` / `ROBOTS` / `HTACCESS`
-blocks in `tools/build.py`).
+Push to the deploy branch, or Actions → **Test and deploy** → Run workflow. The
+first deploy:
+
+- uploads the app to `~/domains/<site>/riverbank` (outside the web root);
+- creates the database tables, the site pages and an *Every second Tuesday*
+  game template;
+- creates your admin login from `ADMIN_EMAIL` / `ADMIN_PASSWORD`;
+- moves the old `public_html` to `public_html.before-app-<date>` and points
+  `public_html` at the app.
+
+Then sign in at `/admin` and:
+
+1. **Logins** → add the owner's login (role *Owner*).
+2. **Settings** → contact email, YouTube channel, jackpots, design.
+3. **Game Templates** → *Add games*, picking the first game's date.
+4. **Distributors**, **Announcements**, **Pages** (English and Français tabs).
+
+Every later push redeploys in about a minute, with the site in maintenance mode
+only for the few seconds the database update takes.
+
+**If something fails**, the Actions log names the step. Common ones: *PHP is too
+old* (set `PHP_BIN`), *extension is off* (step 1.2), *permission denied
+(publickey)* (step 1.5, or `SSH_KEY` pasted incompletely), *rsync: command not
+found* (ask Hostinger support to enable rsync for SSH).
 
 ---
 
-## Editing and rebuilding
+## Running it locally
 
-**`design/` is the source of truth.** Edit the design there, then rebuild:
+Needs PHP 8.3+ with the `intl`, `pdo_sqlite` and `zip` extensions, and Composer.
 
 ```bash
-python3 tools/build.py     # design/*.dc.html -> index.html, black-gold.html
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate --seed      # sample games, distributors, winners, news
+php artisan storage:link
+php artisan serve
 ```
 
-`index.html` and `black-gold.html` are generated — anything you type into them
-is lost on the next build. The build only ever writes `index.html`,
-`black-gold.html`, `robots.txt`, `.htaccess` and the favicon; it never touches
-`design/`, `source/`, `tools/` or `.git/`.
+Then open <http://localhost:8000> and <http://localhost:8000/fr>. Locally the
+seeder also creates two admin logins, both with the password `password`
+(`owner@example.com`, `developer@example.com`). Sample data and these logins
+are only ever created when `APP_ENV=local`.
 
-Each template in `design/` is a full page with two markers the build fills in:
-`<!--BUILD:HEAD-->` (title, meta, favicon, script tags) and `<!--BUILD:TOGGLE-->`
-(the light-bulb switcher).
+Run the tests with `php artisan test`.
 
-### Where the designs came from
+## How it's organised
 
-`source/` holds the two original Claude Design exports — single-file bundles
-carrying a JSON manifest of base64 assets plus the page HTML, unpacked in the
-browser by a loader script. Serving those directly works, but every visitor
-downloads ~1.1 MB and rebuilds each asset in JavaScript before anything appears,
-and the two files ship duplicate copies of React, the fonts and the logos.
+```
+app/Models/             Games, templates, distributors, winners, announcements,
+                        posts, pages, settings, contact messages. Text fields
+                        have a French twin column (title / title_fr).
+app/Support/LiveStatus  The one place that decides whether we're live
+app/Support/Settings    Phone, email, stream, jackpots, design: edited once, used everywhere
+app/Support/Locales     The two languages and their URLs
+app/Support/Format      Dates, times and money per language
+app/Filament/           The owner admin: resources, settings page, dashboard
+app/Http/Controllers/   The public pages
+resources/views/        Public templates (layout, pages, partials)
+lang/fr.json            French for every fixed piece of text on the site
+public/css/site.css     Public styles; both designs as tokens
+public/js/site.js       Live-status polling, countdown, flashboard, map
+deploy/                 What the deploy runs on the server
+design/                 The two original homepage comps, kept for reference
+docs/                   Plan, checklist, client copy
+```
 
-`tools/extract.py` unpacked them once into `design/` and `assets/`, sharing the
-assets that are byte-identical across the two designs (React, the fonts, the
-logo badge and the wordmark are stored once, not twice) and pointing the pages
-at local files instead of a CDN.
+### Live mode
 
-You should not normally need to run it again — **it overwrites `design/` and
-throws away every edit made since**, which is why it refuses to run without
-`--force`. Use it only when you have genuinely new exports to import, and
-expect to redo the design changes afterwards.
+A game is live when an owner override says so, or otherwise when now is inside
+a scheduled, non-cancelled game's start–end window. **Go Live** and
+**End Live** on the dashboard set an override that expires on its own (the
+game's end plus 30 minutes, or 3 hours with no game nearby), so the site can't
+get stuck live. Every page polls `/api/status` every 30 seconds and flips the
+homepage hero without a reload.
 
-### How the pages work
+### Two languages
 
-These are Design Components: static markup plus a `<script type="text/x-dc">`
-block holding the interactive logic for the live caller and the demo card,
-hydrated by React and the runtime in `assets/js/`. Styling is almost entirely
-inline, which is why the responsive rules at the end of each template's
-`<style>` block need class hooks (`.rb-split`, `.rb-headrow`, `.rb-cta`,
-`.rb-board`) and `!important` to take effect.
+English lives at the root and French under `/fr`, with French URLs
+(`/fr/horaire`, `/fr/en-direct`, `/fr/nouvelles`, …). Every page has a link to
+the same page in the other language, and `hreflang` tags for search engines.
 
-On phones the two-column sections stack, the header splits into a brand row and
-a scrolling nav row, and tap targets are padded out. Verified from 320px to
-1440px with no horizontal scrolling.
+- **Fixed text** (menus, buttons, headings) is translated in `lang/fr.json`.
+- **Owner content** has an *English* and a *Français* tab in the admin. Anything
+  left blank in French shows the English, so translating can happen gradually.
+- Dates, times and amounts follow each language: *Tuesday, November 10 · 6:45 PM
+  ET* / *mardi 10 novembre · 18 h 45 HE*, *$1,000* / *1 000 $*.
 
----
+### Page copy
 
-## Placeholder content
+The owner edits a fixed set of pages (About, How to Play, Rules, Privacy, …)
+but can't create or delete pages. Writing `[phone]` or `[email]` in page copy
+inserts the number and address from Settings, so they're only ever changed in
+one place.
 
-The designs are comps, so the copy is deliberately provisional. Before this goes
-live, replace:
+### The two designs
 
-- the support phone number `555-000-0000`;
-- the distributor names, hours and the "drop a real map here" placeholder;
-- the winner quotes and photo slots, all marked *Placeholder name*;
-- the countdown target and session times;
-- the `href="#"` links in the top bar and footer;
-- the "Get game reminders" form, which is a static comp with nothing behind it.
-
-The bingo demo is explicitly labelled as play-for-fun — no money, no prizes.
+**Black & Gold** is the default. The owner can switch to **Classic** under
+Settings → Design; it changes colours and type only, not content or layout.
