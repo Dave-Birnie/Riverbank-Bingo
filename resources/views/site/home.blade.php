@@ -36,7 +36,7 @@
             <div class="cage">
                 <div class="cage-globe" data-cage></div>
                 <div class="cage-ring"></div>
-                <div class="cage-logo"><img src="{{ asset($theme === 'classic' ? 'img/logo-badge-colour.png' : 'img/logo-badge-gold.png') }}" alt=""></div>
+                <div class="cage-logo"><img src="{{ asset('img/logo-badge-gold.png') }}" alt=""></div>
                 <div class="ball ball-current ball-N"><small>N</small><b>42</b></div>
             </div>
             <div class="board-panel">

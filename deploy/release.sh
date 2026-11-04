@@ -57,4 +57,7 @@ if [ ! -L "$WEB_ROOT" ]; then
     echo "The website now serves the app."
 fi
 
+# Shown in the site footer as "Last update".
+printf '{"revision":"%s","updated_at":"%s"}\n' "$(cat REVISION 2>/dev/null)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > build.json
+
 echo "Deployed $(cat REVISION 2>/dev/null || echo 'build')."

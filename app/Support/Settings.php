@@ -25,13 +25,6 @@ class Settings
         'progressives' => [],
         'live_override' => null,
         'assistant_enabled' => false,
-        'site_theme' => 'black-gold',
-    ];
-
-    /** The two designs the owner can pick between. */
-    public const THEMES = [
-        'black-gold' => 'Black & Gold',
-        'classic' => 'Classic',
     ];
 
     /** @var array<string, mixed>|null */
@@ -76,11 +69,6 @@ class Settings
         }
 
         return $this->get($key);
-    }
-
-    public function theme(): string
-    {
-        return array_key_exists($theme = (string) $this->get('site_theme'), self::THEMES) ? $theme : 'black-gold';
     }
 
     /** Digits only, for tel: links. */

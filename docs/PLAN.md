@@ -51,13 +51,13 @@ makes that a setting, not a code change.
   Contact. French lives under `/fr` with French URLs and a language switch on
   every page.
 - **Owner admin** at `/admin`: every content type with English / Français tabs,
-  Settings (including the design: Black & Gold or Classic), and a dashboard with
+  Settings, and a dashboard with
   Go Live / End Live. Developers also get a Logins screen to create the owner's
   account.
 - **Deployment:** GitHub Actions tests every push and deploys the chosen branch
   to Hostinger over SSH (setup steps in the README).
-- **Tests** (45) for live-mode edge cases, schedule generation, scheduled posts,
-  consent on winners, both languages, the design switch, every public page and
+- **Tests** (44) for live-mode edge cases, schedule generation, scheduled posts,
+  consent on winners, both languages, the "Last update" stamp, every public page and
   every admin screen.
 
 ## How live mode works
@@ -124,8 +124,9 @@ These are questions for the client and their regulator, not legal advice:
 
 ## Decided
 
-- **Design:** Black & Gold, switchable to Classic by the owner in Settings.
-- **Schedule:** every second Tuesday at 6:45 PM.
+- **Design:** Black & Gold only.
+- **Schedule:** every second Tuesday at 6:45 PM, changeable by the owner in
+  the admin (Game Templates: day, how often, start time, length, prizes).
 - **French:** yes, the whole public site.
 - **Play-along card:** not yet.
 - **Hosting:** the Hostinger temp site for now.

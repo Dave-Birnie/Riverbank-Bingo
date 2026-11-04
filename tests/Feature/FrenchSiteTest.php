@@ -113,13 +113,21 @@ class FrenchSiteTest extends TestCase
         $this->assertSame('fr', ContactMessage::first()->locale);
     }
 
-    public function test_the_design_follows_the_admin_setting(): void
+    public function test_footer_shows_when_the_site_was_last_updated(): void
     {
-        $this->get('/')->assertSee('data-theme="black-gold"', false);
+        $this->get('/')->assertDontSee('Last update');
 
-        app(Settings::class)->set('site_theme', 'classic');
-        $this->app->forgetScopedInstances();
+        $file = tempnam(sys_get_temp_dir(), 'build');
+        file_put_contents($file, json_encode(['revision' => '0d1cca4', 'updated_at' => '2026-11-04T20:12:00Z']));
+        config(['riverbank.build_file' => $file]);
 
-        $this->get('/')->assertSee('data-theme="classic"', false);
+        try {
+            $this->get('/')
+                ->assertSee('Last update: November 4, 2026, 3:12 PM ET')
+                ->assertSee('Build 0d1cca4');
+            $this->get('/fr')->assertSee('Dernière mise à jour : 4 novembre 2026 à 15 h 12 HE');
+        } finally {
+            unlink($file);
+        }
     }
 }

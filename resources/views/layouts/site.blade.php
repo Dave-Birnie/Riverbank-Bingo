@@ -1,10 +1,13 @@
 @php
+    use App\Support\Build;
+    use App\Support\Format;
     use App\Support\Locales;
 
     $phone = $settings->get('business_phone');
     $nextGame = $live['next_game'];
     $locale = app()->getLocale();
     $otherLocale = $locale === 'fr' ? 'en' : 'fr';
+    $build = Build::current();
     $nav = [
         'schedule' => __('Schedule'),
         'watch' => __('Watch Live'),
@@ -17,7 +20,6 @@
 @endphp
 <!DOCTYPE html>
 <html lang="{{ Locales::htmlLang() }}"
-      data-theme="{{ $theme }}"
       data-live="{{ $live['live'] ? 1 : 0 }}"
       data-status-url="{{ route('status') }}"
       data-next-game="{{ $nextGame?->starts_at->toIso8601String() }}">
@@ -32,10 +34,10 @@
     @foreach ($alternates as $altLocale => $url)
         <link rel="alternate" hreflang="{{ $altLocale }}-CA" href="{{ $url }}">
     @endforeach
-    <meta name="theme-color" content="{{ $theme === 'classic' ? '#0B2A3A' : '#08080A' }}">
+    <meta name="theme-color" content="#08080A">
     <link rel="icon" href="{{ asset('img/favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('img/logo-badge-gold.png') }}">
-    <link rel="preload" href="{{ asset($theme === 'classic' ? 'fonts/bevan-400-normal-latin.woff2' : 'fonts/playfair-display-700-normal-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/playfair-display-700-normal-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ filemtime(public_path('css/site.css')) }}">
     @stack('head')
 </head>
@@ -119,6 +121,9 @@
     <div class="wrap footer-base">
         <span>© {{ now()->year }} Riverbank Bingo. {{ __('Approved adult play only, 18+.') }}</span>
         <span>Kahnawake, {{ __('Quebec') }}</span>
+        @if ($build['updated_at'])
+            <span class="last-update" title="{{ $build['revision'] ? 'Build '.$build['revision'] : '' }}">{{ __('Last update: :date', ['date' => Format::dateTime($build['updated_at'])]) }}</span>
+        @endif
     </div>
 </footer>
 

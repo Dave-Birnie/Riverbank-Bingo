@@ -116,12 +116,15 @@ first deploy:
 Then sign in at `/admin` and:
 
 1. **Logins** → add the owner's login (role *Owner*).
-2. **Settings** → contact email, YouTube channel, jackpots, design.
+2. **Settings** → contact email, YouTube channel, jackpots.
 3. **Game Templates** → *Add games*, picking the first game's date.
 4. **Distributors**, **Announcements**, **Pages** (English and Français tabs).
 
 Every later push redeploys in about a minute, with the site in maintenance mode
-only for the few seconds the database update takes.
+only for the few seconds the database update takes. The footer of every page
+shows **Last update** with the date and time of the deploy that's live, so you
+can tell at a glance whether a change has gone out. (Hover over it to see the
+commit.)
 
 **If something fails**, the Actions log names the step. Common ones: *PHP is too
 old* (set `PHP_BIN`), *extension is off* (step 1.2), *permission denied
@@ -158,17 +161,17 @@ app/Models/             Games, templates, distributors, winners, announcements,
                         posts, pages, settings, contact messages. Text fields
                         have a French twin column (title / title_fr).
 app/Support/LiveStatus  The one place that decides whether we're live
-app/Support/Settings    Phone, email, stream, jackpots, design: edited once, used everywhere
+app/Support/Settings    Phone, email, stream, jackpots: edited once, used everywhere
 app/Support/Locales     The two languages and their URLs
 app/Support/Format      Dates, times and money per language
 app/Filament/           The owner admin: resources, settings page, dashboard
 app/Http/Controllers/   The public pages
 resources/views/        Public templates (layout, pages, partials)
 lang/fr.json            French for every fixed piece of text on the site
-public/css/site.css     Public styles; both designs as tokens
+public/css/site.css     Public styles (the Black & Gold design)
 public/js/site.js       Live-status polling, countdown, flashboard, map
 deploy/                 What the deploy runs on the server
-design/                 The two original homepage comps, kept for reference
+design/                 The original Black & Gold homepage comp, kept for reference
 docs/                   Plan, checklist, client copy
 ```
 
@@ -199,8 +202,3 @@ The owner edits a fixed set of pages (About, How to Play, Rules, Privacy, …)
 but can't create or delete pages. Writing `[phone]` or `[email]` in page copy
 inserts the number and address from Settings, so they're only ever changed in
 one place.
-
-### The two designs
-
-**Black & Gold** is the default. The owner can switch to **Classic** under
-Settings → Design; it changes colours and type only, not content or layout.

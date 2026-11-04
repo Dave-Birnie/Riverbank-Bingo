@@ -46,6 +46,12 @@ class Format
         return $zone ? $time.(self::french() ? ' HE' : ' ET') : $time;
     }
 
+    /** "November 4, 2026, 3:12 PM ET" / "4 novembre 2026 à 15 h 12 HE". */
+    public static function dateTime(CarbonInterface $date): string
+    {
+        return self::date($date).(self::french() ? ' à ' : ', ').self::time($date);
+    }
+
     public static function money(float|int|string|null $amount): string
     {
         $amount = (float) $amount;

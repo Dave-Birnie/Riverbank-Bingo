@@ -9,7 +9,6 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
@@ -42,7 +41,7 @@ class SiteSettings extends Page
 
     /** Settings this page edits; anything else (like the live override) is left alone. */
     private const FIELDS = [
-        'site_theme', 'business_phone', 'business_email', 'mailing_address', 'facebook_url',
+        'business_phone', 'business_email', 'mailing_address', 'facebook_url',
         'youtube_channel_url', 'youtube_channel_id', 'stream_url', 'offline_message', 'offline_message_fr',
         'progressives', 'delivery_areas', 'delivery_areas_fr', 'assistant_enabled',
     ];
@@ -60,16 +59,6 @@ class SiteSettings extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Design')
-                    ->description('How the public website looks. Switching takes effect immediately; nothing else changes.')
-                    ->schema([
-                        ToggleButtons::make('site_theme')
-                            ->hiddenLabel()
-                            ->options(Settings::THEMES)
-                            ->icons(['black-gold' => Heroicon::OutlinedMoon, 'classic' => Heroicon::OutlinedSun])
-                            ->inline()
-                            ->required(),
-                    ]),
                 Section::make('Contact details')
                     ->description('Shown in the header, footer, Contact page and anywhere page copy says [phone] or [email].')
                     ->columns(2)

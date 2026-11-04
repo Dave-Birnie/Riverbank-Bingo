@@ -14,8 +14,8 @@ use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
- * Everything the site-wide layout needs: contact details, the design the
- * owner picked, live state, the scrolling banner and the language links.
+ * Everything the site-wide layout needs: contact details, live state, the
+ * scrolling banner and the language links.
  */
 class SiteComposer
 {
@@ -27,7 +27,6 @@ class SiteComposer
             'settings' => $this->settings,
             'live' => $this->live->state(),
             'bannerItems' => $this->bannerItems(),
-            'theme' => $this->settings->theme(),
             'alternates' => Locales::alternates(),
         ]);
     }

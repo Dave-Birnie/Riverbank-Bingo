@@ -26,6 +26,7 @@
     "Card Distributors": "Distributeurs de cartes",
     "Cards and delivery": "Cartes et livraison",
     "Cards available until :time on game day": "Cartes en vente jusqu'à :time le jour de la partie",
+    "cards close :time": "fin des ventes à :time",
     "Contact": "Contact",
     "Contact Us": "Nous joindre",
     "Contact us": "Nous joindre",
@@ -39,8 +40,8 @@
     "Flashboard": "Tableau des numéros",
     "Full schedule and prizes": "Horaire complet et prix",
     "Further out? We deliver to :areas.": "Vous habitez plus loin? Nous livrons à :areas.",
-    "Game Schedule": "Horaire des parties",
     "Game in session": "Partie en cours",
+    "Game Schedule": "Horaire des parties",
     "Game schedule": "Horaire des parties",
     "General question": "Question générale",
     "Get your cards": "Procurez-vous vos cartes",
@@ -56,6 +57,7 @@
     "How to play at home": "Jouer de la maison",
     "Kahnawake's live-streamed bingo. Paper cards from local distributors, a live broadcast every second Tuesday, and winners verified on air.": "Le bingo diffusé en direct de Kahnawake. Des cartes papier vendues par des distributeurs locaux, une diffusion en direct un mardi sur deux et des gagnants vérifiés en ondes.",
     "Kahnawake's live-streamed bingo. Pick up your cards, tune in to the live broadcast every second Tuesday, and call in your BINGO.": "Le bingo diffusé en direct de Kahnawake. Procurez-vous vos cartes, suivez la diffusion en direct un mardi sur deux et appelez-nous pour votre BINGO.",
+    "Last update: :date": "Dernière mise à jour : :date",
     "Learn more": "En savoir plus",
     "Leave this empty": "Laissez ce champ vide",
     "Live now": "En direct",
@@ -127,6 +129,5 @@
     "Winners": "Gagnants",
     "Winners verified live on air": "Gagnants vérifiés en direct",
     "Winnings and payouts": "Gains et paiements",
-    "Your name": "Votre nom",
-    "cards close :time": "fin des ventes à :time"
+    "Your name": "Votre nom"
 }

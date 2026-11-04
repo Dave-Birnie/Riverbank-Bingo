@@ -20,3 +20,4 @@
 /public/fonts/filament
 /bootstrap/cache/*.php
 /database/database.sqlite
+/build.json

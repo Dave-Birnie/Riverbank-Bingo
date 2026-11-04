@@ -88,18 +88,6 @@ class AdminTest extends TestCase
         $this->assertSame('À propos de Riverbank', $about->fresh()->title_fr);
     }
 
-    public function test_owner_can_switch_the_design(): void
-    {
-        Livewire::test(SiteSettings::class)
-            ->assertSet('data.site_theme', 'black-gold')
-            ->fillForm(['site_theme' => 'classic'])
-            ->call('save')
-            ->assertHasNoFormErrors();
-
-        $this->app->forgetScopedInstances();
-        $this->assertSame('classic', app(Settings::class)->theme());
-    }
-
     public function test_owner_can_cancel_a_game_from_the_list(): void
     {
         $game = Game::query()->orderBy('starts_at')->first();
