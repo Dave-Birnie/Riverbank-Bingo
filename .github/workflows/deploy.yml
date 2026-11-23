@@ -1,0 +1,98 @@
+name: Test and deploy
+
+# Tests run on every push. A push to the branch named in the DEPLOY_BRANCH
+# repository variable is also deployed to Hostinger over SSH; nothing deploys
+# until the variables and secrets in README → Deploying are set.
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, zip, pdo_sqlite
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          cp .env.example .env
+          composer install --no-interaction --no-progress --prefer-dist
+          php artisan key:generate
+
+      - name: Run tests
+        run: php artisan test
+
+  deploy:
+    needs: test
+    if: vars.SITE_DOMAIN != '' && github.ref_name == vars.DEPLOY_BRANCH
+    runs-on: ubuntu-latest
+    env:
+      APP_DIR: domains/${{ vars.SITE_DOMAIN }}/riverbank
+      WEB_ROOT: domains/${{ vars.SITE_DOMAIN }}/public_html
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, zip
+          coverage: none
+
+      - name: Build
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
+          git rev-parse --short HEAD > REVISION
+
+      - name: Set up SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          # Pin the server's host key when SSH_KNOWN_HOSTS is set; otherwise trust it on first contact.
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts; CHECK=yes; else CHECK=accept-new; fi
+          cat > ~/.ssh/config <<CONFIG
+          Host hostinger
+            HostName $SSH_HOST
+            Port ${SSH_PORT:-65002}
+            User $SSH_USER
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking $CHECK
+          CONFIG
+
+      - name: Upload
+        run: |
+          ssh hostinger "mkdir -p $APP_DIR"
+          rsync -az --delete --exclude-from=deploy/rsync-exclude ./ "hostinger:$APP_DIR/"
+
+      - name: Write .env (first deploy only)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: printf '%s\n' "$ENV_FILE" | ssh hostinger "test -f $APP_DIR/.env || cat > $APP_DIR/.env"
+
+      - name: Release
+        env:
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          PHP_BIN: ${{ vars.PHP_BIN }}
+        run: |
+          # Secrets go over stdin, not the command line, so they never show in a process list.
+          {
+            printf 'export ADMIN_EMAIL=%q ADMIN_PASSWORD=%q PHP_BIN=%q\n' "$ADMIN_EMAIL" "$ADMIN_PASSWORD" "${PHP_BIN:-php}"
+            printf 'bash %q %q %q\n' "$APP_DIR/deploy/release.sh" "$APP_DIR" "$WEB_ROOT"
+          } | ssh hostinger bash -s
