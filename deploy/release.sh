@@ -42,7 +42,8 @@ trap '"$PHP" artisan up' EXIT
 "$PHP" artisan migrate --force
 "$PHP" artisan db:seed --class=SiteSeeder --force   # adds any new pages; never overwrites edits
 "$PHP" artisan filament:assets
-[ -L public/storage ] || "$PHP" artisan storage:link
+# Not `artisan storage:link`: Hostinger disables PHP's symlink() and exec().
+[ -L public/storage ] || ln -s ../storage/app/public public/storage
 "$PHP" artisan riverbank:admin
 "$PHP" artisan optimize
 "$PHP" artisan filament:optimize
